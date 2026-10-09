@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Report Me Moderation</title>
+<link rel="icon" href="../assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<style>
+/* Moderation dashboard. Layout: header, then three columns on wide screens (views | list | detail);
+   on phones the detail replaces the list and the views become a scrolling tab row. */
+:root {
+  --bg: #fffaf6; --surface: #ffffff; --sunken: #fbf3ec; --fg: #22180f; --muted: #6b5d52; --line: #f0e3d8;
+  --brand: #e8590c; --brand-deep: #b83c0c; --brand-soft: #fde8db; --on-brand: #ffffff;
+  --ok: #1f7a3d; --ok-soft: #dff3e6; --warn: #9a5b00; --warn-soft: #fdf0d5; --bad: #b42318; --bad-soft: #fde4e1;
+  --info: #1d5fa8; --info-soft: #e1edfb;
+  --font: "Readex Pro", system-ui, -apple-system, "Segoe UI", "Geeza Pro", sans-serif;
+  --radius: 14px; --shadow: 0 10px 30px -18px rgba(120, 50, 10, .35);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17120f; --surface: #211a16; --sunken: #1b1512; --fg: #f6ede6; --muted: #b8a89b; --line: #3a2e27;
+    --brand: #ff8a4c; --brand-deep: #ffb08a; --brand-soft: #3a2316; --on-brand: #1a0d05;
+    --ok: #6fd394; --ok-soft: #173322; --warn: #f3c164; --warn-soft: #382a10; --bad: #ff8f84; --bad-soft: #3d1a17;
+    --info: #8cbcf5; --info-soft: #182a40;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17120f; --surface: #211a16; --sunken: #1b1512; --fg: #f6ede6; --muted: #b8a89b; --line: #3a2e27;
+  --brand: #ff8a4c; --brand-deep: #ffb08a; --brand-soft: #3a2316; --on-brand: #1a0d05;
+  --ok: #6fd394; --ok-soft: #173322; --warn: #f3c164; --warn-soft: #382a10; --bad: #ff8f84; --bad-soft: #3d1a17;
+  --info: #8cbcf5; --info-soft: #182a40;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 400 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; border-radius: 8px; }
+[hidden] { display: none !important; }
+.muted { color: var(--muted); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 16px;
+  border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; font-size: 14px; }
+.btn:hover { border-color: var(--brand); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+.btn.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+.btn.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+.btn.small { min-height: 32px; padding: 4px 12px; font-size: 13px; border-radius: 10px; }
+.kbd { font-size: 11px; padding: 1px 6px; border-radius: 6px; border: 1px solid currentColor; opacity: .6; font-weight: 500; }
+
+/* Header */
+header.top { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 92%, transparent); position: sticky; top: 0; z-index: 5; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; }
+.brand img { width: 32px; height: 32px; border-radius: 8px; }
+.brand small { color: var(--muted); font-weight: 500; }
+.top .spacer { flex: 1; }
+.who { color: var(--muted); font-size: 13px; max-width: 30ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Sign in */
+.center { min-height: calc(100vh - 60px); display: grid; place-items: center; padding: 24px 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 28px; box-shadow: var(--shadow); width: min(420px, 100%); }
+.card h1 { font-size: 24px; margin: 0 0 6px; }
+.card p { margin: 0 0 18px; }
+.field { display: grid; gap: 6px; margin-bottom: 14px; }
+.field label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.input { width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); }
+.input:focus { border-color: var(--brand); outline: none; }
+.code { letter-spacing: .4em; font-size: 22px; text-align: center; font-variant-numeric: tabular-nums; }
+.error { color: var(--bad); background: var(--bad-soft); padding: 10px 12px; border-radius: 10px; font-size: 14px; margin-bottom: 14px; }
+
+/* Layout */
+.app { display: grid; grid-template-columns: 220px minmax(300px, 400px) minmax(0, 1fr); height: calc(100vh - 57px); }
+nav.views { border-inline-end: 1px solid var(--line); padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+.view { display: flex; align-items: center; gap: 10px; width: 100%; text-align: start; padding: 10px 12px; border-radius: 12px; border: 0; background: transparent; font-weight: 500; }
+.view:hover { background: var(--sunken); }
+.view[aria-current="true"] { background: var(--brand-soft); color: var(--brand-deep); font-weight: 600; }
+.view .count { margin-inline-start: auto; font-size: 12px; font-weight: 600; min-width: 24px; text-align: center; padding: 1px 8px; border-radius: 999px; background: var(--sunken); color: var(--muted); }
+.view[aria-current="true"] .count { background: var(--surface); color: var(--brand-deep); }
+.view .count.hot { background: var(--brand); color: var(--on-brand); }
+.views .help { margin-top: auto; font-size: 12px; color: var(--muted); padding: 12px; line-height: 1.7; }
+
+section.list { border-inline-end: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.filters { display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid var(--line); }
+.filters .input { min-height: 38px; padding: 6px 10px; font-size: 14px; }
+.filters select { flex: 0 0 auto; max-width: 45%; }
+ul.items { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
+.item { display: grid; grid-template-columns: 56px 1fr; gap: 12px; padding: 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.item:hover { background: var(--sunken); }
+.item[aria-selected="true"] { background: var(--brand-soft); }
+.thumb { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: var(--sunken); display: grid; place-items: center; font-size: 26px; }
+.item .title { font-weight: 600; display: flex; gap: 6px; align-items: center; }
+.item .sub { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.empty { padding: 48px 20px; text-align: center; color: var(--muted); }
+.empty .big { font-size: 36px; }
+
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.chip.submitted { background: var(--info-soft); color: var(--info); }
+.chip.verified { background: var(--brand-soft); color: var(--brand-deep); }
+.chip.in_progress { background: var(--warn-soft); color: var(--warn); }
+.chip.resolved { background: var(--ok-soft); color: var(--ok); }
+.chip.rejected, .chip.flag, .chip.review { background: var(--bad-soft); color: var(--bad); }
+.chip.duplicate, .chip.neutral { background: var(--sunken); color: var(--muted); }
+
+/* Detail */
+section.detail { overflow-y: auto; min-height: 0; }
+.detail-inner { padding: 20px 24px 40px; max-width: 860px; }
+.back { display: none; }
+.d-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; }
+.d-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--brand-soft); display: grid; place-items: center; font-size: 28px; flex: none; }
+.d-head h2 { margin: 0; font-size: 22px; line-height: 1.25; }
+.d-head .meta { color: var(--muted); font-size: 14px; }
+.d-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.alert { border-radius: var(--radius); padding: 12px 14px; margin: 14px 0; background: var(--bad-soft); color: var(--fg); border: 1px solid color-mix(in srgb, var(--bad) 30%, transparent); }
+.alert strong { color: var(--bad); }
+.alert.calm { background: var(--sunken); border-color: var(--line); }
+.alert.calm strong { color: var(--muted); }
+.alert ul { margin: 6px 0 0; padding-inline-start: 20px; }
+.actions { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; margin: 0 -12px 16px; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.actions .label { width: 100%; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-bottom: 16px; }
+.photos a { display: block; border-radius: 12px; overflow: hidden; background: var(--sunken); aspect-ratio: 4 / 3; }
+.photos img { width: 100%; height: 100%; object-fit: cover; }
+.desc { font-size: 16px; white-space: pre-wrap; margin: 0 0 16px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.panel h3 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+dl.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 14px; }
+dl.facts dt { color: var(--muted); }
+dl.facts dd { margin: 0; overflow-wrap: anywhere; }
+.map { height: 220px; border-radius: 12px; overflow: hidden; background: var(--sunken); }
+ol.timeline { list-style: none; margin: 0; padding: 0; }
+ol.timeline li { position: relative; padding: 0 0 14px 22px; font-size: 14px; }
+[dir="rtl"] ol.timeline li { padding: 0 22px 14px 0; }
+ol.timeline li::before { content: ""; position: absolute; inset-inline-start: 4px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--brand); }
+ol.timeline li::after { content: ""; position: absolute; inset-inline-start: 8px; top: 18px; bottom: 0; width: 1px; background: var(--line); }
+ol.timeline li:last-child::after { display: none; }
+ol.timeline .note { color: var(--muted); }
+.copy { border: 0; background: none; color: var(--brand); font-size: 12px; padding: 0 4px; }
+
+/* Dialog */
+dialog { border: 1px solid var(--line); border-radius: 18px; padding: 22px; width: min(460px, calc(100vw - 32px)); background: var(--surface); color: var(--fg); box-shadow: var(--shadow); }
+dialog::backdrop { background: rgba(20, 10, 4, .45); }
+dialog h3 { margin: 0 0 6px; font-size: 18px; }
+dialog p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+dialog textarea { min-height: 90px; resize: vertical; }
+.row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+
+.toast { position: fixed; inset-inline: 0; bottom: 20px; margin: auto; width: max-content; max-width: calc(100vw - 32px); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-weight: 500; z-index: 20; box-shadow: var(--shadow); }
+.toast.bad { background: var(--bad); color: #fff; }
+
+@media (max-width: 1080px) {
+  .app { grid-template-columns: 190px minmax(280px, 360px) minmax(0, 1fr); }
+}
+@media (max-width: 820px) {
+  .app { display: flex; flex-direction: column; height: auto; min-height: calc(100vh - 57px); }
+  nav.views { flex-direction: row; overflow-x: auto; border-inline-end: 0; border-bottom: 1px solid var(--line); padding: 8px; scrollbar-width: none; }
+  .view { width: auto; white-space: nowrap; }
+  .views .help { display: none; }
+  section.list { border-inline-end: 0; }
+  ul.items { overflow: visible; }
+  .app.showing-detail section.list, .app.showing-detail nav.views { display: none; }
+  .app:not(.showing-detail) section.detail { display: none; }
+  .back { display: inline-flex; margin-bottom: 12px; }
+  .detail-inner { padding: 16px; }
+  .who { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img src="../assets/icon.png" alt=""><span>Report Me</span><small data-t="moderation">Moderation</small></div>
+  <div class="spacer"></div>
+  <span class="who" id="who"></span>
+  <button class="btn small ghost" id="lang" type="button" lang="ar">العربية</button>
+  <button class="btn small" id="signout" type="button" data-t="signOut" hidden>Sign out</button>
+</header>
+
+<!-- Sign in -->
+<main id="signin" class="center" hidden>
+  <form class="card" id="signin-form" autocomplete="on">
+    <h1 data-t="signInTitle">Moderator sign in</h1>
+    <p class="muted" data-t="signInBody">We'll email you a 6-digit code. Only moderator accounts can open the dashboard.</p>
+    <div class="error" id="signin-error" role="alert" hidden></div>
+    <div class="field" id="email-field">
+      <label for="email" data-t="email">Email</label>
+      <input class="input" id="email" type="email" autocomplete="email" required>
+    </div>
+    <div class="field" id="code-field" hidden>
+      <label for="code" data-t="code">6-digit code</label>
+      <input class="input code" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}">
+      <button class="btn small ghost" id="change-email" type="button" data-t="changeEmail">Use a different email</button>
+    </div>
+    <button class="btn primary" id="signin-submit" type="submit" style="width:100%" data-t="sendCode">Send code</button>
+  </form>
+</main>
+
+<!-- Signed in, but not staff -->
+<main id="noaccess" class="center" hidden>
+  <div class="card">
+    <h1 data-t="noAccessTitle">No moderator access</h1>
+    <p class="muted" data-t="noAccessBody">This account isn't a moderator. Ask an admin to give it the moderator role, then sign in again.</p>
+    <p class="muted" style="font-size:13px"><span data-t="accountId">Account ID</span>: <code id="noaccess-id"></code></p>
+  </div>
+</main>
+
+<!-- Dashboard -->
+<div class="app" id="app" hidden>
+  <nav class="views" id="views" aria-label="Report lists"></nav>
+  <section class="list" aria-label="Reports">
+    <div class="filters">
+      <label class="sr" for="search" data-t="search">Search</label>
+      <input class="input" id="search" type="search" data-tp="searchPlaceholder" placeholder="Search address or text">
+      <label class="sr" for="category" data-t="category">Category</label>
+      <select class="input" id="category"></select>
+    </div>
+    <ul class="items" id="items" role="listbox" aria-label="Reports"></ul>
+  </section>
+  <section class="detail" id="detail" aria-live="polite"></section>
+</div>
+
+<dialog id="dialog">
+  <form method="dialog" id="dialog-form">
+    <h3 id="dialog-title"></h3>
+    <p id="dialog-body"></p>
+    <div class="field" id="dialog-dup-field" hidden>
+      <label for="dialog-dup" data-t="duplicateOf">Original report ID</label>
+      <input class="input" id="dialog-dup" placeholder="00000000-0000-0000-0000-000000000000">
+    </div>
+    <div class="field">
+      <label for="dialog-note" id="dialog-note-label"></label>
+      <textarea class="input" id="dialog-note" maxlength="500"></textarea>
+    </div>
+    <div class="row">
+      <button class="btn" value="cancel" data-t="cancel">Cancel</button>
+      <button class="btn primary" value="ok" id="dialog-ok"></button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
+
+// Public values (the same ones the apps ship with). Access is enforced by the database: only accounts
+// whose profile role is moderator, agent or admin can read staff_reports or call the moderation functions.
+const SUPABASE_URL = "https://puiltzmjhxecmrjbupjf.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aWx0em1qaHhlY21yamJ1cGpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNTc3NzYsImV4cCI6MjEwNjkzMzc3Nn0.QcUvq49pmAGJR5WkrAHOaplERO3EYzI1Z3QE5aXo4Uo";
+const PHOTO_BASE = `${SUPABASE_URL}/storage/v1/object/public/report-photos/`;
+const MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ---------------------------------------------------------------- Text (English / Arabic)
+const T = {
+  en: {
+    moderation: "Moderation", signOut: "Sign out", signInTitle: "Moderator sign in",
+    signInBody: "We'll email you a 6-digit code. Only moderator accounts can open the dashboard.",
+    email: "Email", code: "6-digit code", changeEmail: "Use a different email", sendCode: "Send code", signIn: "Sign in",
+    codeSent: "Code sent. Check your email.", badCode: "That code didn't work. Check it, or send a new one.",
+    noAccount: "There's no account with this email. Sign in once in the app first.",
+    noAccessTitle: "No moderator access", accountId: "Account ID",
+    noAccessBody: "This account isn't a moderator. Ask an admin to give it the moderator role, then sign in again.",
+    search: "Search", searchPlaceholder: "Search address or text", category: "Category", allCategories: "All categories",
+    v_review: "Waiting for review", v_new: "New", v_verified: "Verified", v_progress: "Being fixed", v_flagged: "Flagged",
+    v_resolved: "Fixed", v_rejected: "Rejected", v_all: "All reports",
+    help: "Keys: J / K next and previous, A approve or verify, R reject.",
+    s_submitted: "New", s_verified: "Verified", s_in_progress: "Being fixed", s_resolved: "Fixed", s_rejected: "Rejected", s_duplicate: "Duplicate",
+    inReview: "Waiting for review", flags: (n) => n === 1 ? "1 flag" : `${n} flags`, votes: (n) => n === 1 ? "1 confirmation" : `${n} confirmations`,
+    emptyTitle: "Nothing here", emptyBody: "No reports match this list.", pick: "Pick a report to see the details.",
+    back: "Back to the list", whyReview: "Why it's waiting for review", spamChecks: "Anti-spam checks when it was sent",
+    r_no_device_location: "The phone didn't share its location when the report was sent.",
+    r_far_from_device: (m) => `The pin is ${formatDistance(m)} from where the phone was.`,
+    r_mock_location: "The phone was using a fake-GPS app.",
+    r_impossible_travel: "The reporter's location jumped faster than anyone can travel.",
+    r_flagged: "People flagged it.",
+    decide: "Decision", changeStatus: "Change status",
+    approve: "Approve and publish", reject: "Reject", verify: "Verify", start: "Mark being fixed", resolve: "Mark fixed",
+    duplicate: "Duplicate", ban: "Ban reporter", unban: "Unban reporter", reopen: "Reopen",
+    details: "Details", location: "Location", reporter: "Reporter", history: "History", flagsTitle: "Flags",
+    f_category: "Category", f_severity: "Severity", f_reported: "Reported", f_address: "Address", f_coords: "Coordinates",
+    f_distance: "Pin to phone", f_name: "Name", f_hidden: "Hidden from the public", f_banned: "Banned", f_id: "ID",
+    anonymous: "No name", yes: "Yes", no: "No", copy: "Copy", copied: "Copied",
+    sev_low: "Low", sev_medium: "Medium", sev_high: "High",
+    fr_spam: "Spam", fr_inappropriate: "Inappropriate", fr_wrong_location: "Wrong location", fr_already_fixed: "Already fixed",
+    noFlags: "No flags.", noHistory: "No changes yet.", openMaps: "Open in maps",
+    cancel: "Cancel", duplicateOf: "Original report ID",
+    noteLabel: "Note (optional, shown on the report's timeline)", reasonLabel: "Reason (optional, not shown to the reporter)",
+    d_reject: "Reject this report?", d_reject_body: "It disappears from the map. The reporter still sees it, marked rejected.",
+    d_status: (s) => `Mark as “${s}”?`, d_status_body: "The reporter and everyone who confirmed it get a notification.",
+    d_dup: "Mark as duplicate?", d_dup_body: "Paste the ID of the original report. This one is hidden and points to it.",
+    d_ban: "Ban this reporter?", d_ban_body: "They can't send reports any more, and all their reports are rejected.",
+    d_unban: "Unban this reporter?", d_unban_body: "They can send reports again. Rejected reports stay rejected.",
+    done_approve: "Published.", done_reject: "Rejected.", done_status: "Status updated.", done_ban: (n) => `Banned. ${n} reports removed.`, done_unban: "Unbanned.",
+    e_forbidden: "Your account can't do that.", e_network: "Couldn't reach the server. Check your connection.",
+    e_dup: "Enter the original report's ID.", e_staff: "You can't ban another moderator.", e_generic: "Something went wrong. Try again.",
+    refresh: "Refresh", ago: (d) => d,
+  },
+  ar: {
+    moderation: "الإشراف", signOut: "تسجيل الخروج", signInTitle: "دخول المشرفين",
+    signInBody: "سنرسل إلى بريدك رمزًا من 6 أرقام. لا يمكن فتح لوحة التحكم إلا بحساب مشرف.",
+    email: "البريد الإلكتروني", code: "الرمز المكوّن من 6 أرقام", changeEmail: "استخدام بريد آخر", sendCode: "إرسال الرمز", signIn: "دخول",
+    codeSent: "تم إرسال الرمز. تحقق من بريدك.", badCode: "الرمز غير صحيح. تحقق منه أو اطلب رمزًا جديدًا.",
+    noAccount: "لا يوجد حساب بهذا البريد. سجّل الدخول في التطبيق مرة أولًا.",
+    noAccessTitle: "لا توجد صلاحية إشراف", accountId: "معرّف الحساب",
+    noAccessBody: "هذا الحساب ليس حساب مشرف. اطلب من المسؤول منحه دور المشرف ثم سجّل الدخول من جديد.",
+    search: "بحث", searchPlaceholder: "ابحث في العنوان أو النص", category: "الفئة", allCategories: "كل الفئات",
+    v_review: "بانتظار المراجعة", v_new: "جديدة", v_verified: "تم التحقق", v_progress: "جارٍ الإصلاح", v_flagged: "مُبلّغ عنها",
+    v_resolved: "تم الإصلاح", v_rejected: "مرفوضة", v_all: "كل البلاغات",
+    help: "الاختصارات: J / K التالي والسابق، A موافقة أو تحقق، R رفض.",
+    s_submitted: "جديد", s_verified: "تم التحقق", s_in_progress: "جارٍ الإصلاح", s_resolved: "تم الإصلاح", s_rejected: "مرفوض", s_duplicate: "مكرر",
+    inReview: "بانتظار المراجعة", flags: (n) => `${n} إبلاغ`, votes: (n) => `${n} تأكيد`,
+    emptyTitle: "لا شيء هنا", emptyBody: "لا توجد بلاغات في هذه القائمة.", pick: "اختر بلاغًا لعرض تفاصيله.",
+    back: "العودة إلى القائمة", whyReview: "لماذا ينتظر المراجعة", spamChecks: "نتائج فحص الإزعاج عند الإرسال",
+    r_no_device_location: "لم يشارك الهاتف موقعه عند إرسال البلاغ.",
+    r_far_from_device: (m) => `الدبوس على بُعد ${formatDistance(m)} من موقع الهاتف.`,
+    r_mock_location: "كان الهاتف يستخدم تطبيق موقع مزيف.",
+    r_impossible_travel: "تغيّر موقع المُبلِّغ أسرع مما يمكن لأي شخص التنقل.",
+    r_flagged: "أبلغ عنه بعض المستخدمين.",
+    decide: "القرار", changeStatus: "تغيير الحالة",
+    approve: "موافقة ونشر", reject: "رفض", verify: "تحقق", start: "جارٍ الإصلاح", resolve: "تم الإصلاح",
+    duplicate: "مكرر", ban: "حظر المُبلِّغ", unban: "إلغاء الحظر", reopen: "إعادة فتح",
+    details: "التفاصيل", location: "الموقع", reporter: "المُبلِّغ", history: "السجل", flagsTitle: "الإبلاغات",
+    f_category: "الفئة", f_severity: "الخطورة", f_reported: "تاريخ البلاغ", f_address: "العنوان", f_coords: "الإحداثيات",
+    f_distance: "المسافة بين الدبوس والهاتف", f_name: "الاسم", f_hidden: "مخفي عن العامة", f_banned: "محظور", f_id: "المعرّف",
+    anonymous: "بدون اسم", yes: "نعم", no: "لا", copy: "نسخ", copied: "تم النسخ",
+    sev_low: "منخفضة", sev_medium: "متوسطة", sev_high: "عالية",
+    fr_spam: "إزعاج", fr_inappropriate: "غير لائق", fr_wrong_location: "موقع خاطئ", fr_already_fixed: "تم إصلاحه",
+    noFlags: "لا توجد إبلاغات.", noHistory: "لا توجد تغييرات بعد.", openMaps: "فتح في الخرائط",
+    cancel: "إلغاء", duplicateOf: "معرّف البلاغ الأصلي",
+    noteLabel: "ملاحظة (اختيارية، تظهر في سجل البلاغ)", reasonLabel: "السبب (اختياري، لا يظهر للمُبلِّغ)",
+    d_reject: "رفض هذا البلاغ؟", d_reject_body: "سيختفي من الخريطة. سيظل المُبلِّغ يراه بحالة مرفوض.",
+    d_status: (s) => `تغيير الحالة إلى «${s}»؟`, d_status_body: "سيصل إشعار إلى المُبلِّغ وكل من أكد البلاغ.",
+    d_dup: "تحديده كمكرر؟", d_dup_body: "الصق معرّف البلاغ الأصلي. سيُخفى هذا البلاغ ويشير إليه.",
+    d_ban: "حظر هذا المُبلِّغ؟", d_ban_body: "لن يتمكن من إرسال بلاغات، وسيتم رفض كل بلاغاته.",
+    d_unban: "إلغاء حظر هذا المُبلِّغ؟", d_unban_body: "سيتمكن من الإبلاغ مجددًا. تبقى البلاغات المرفوضة مرفوضة.",
+    done_approve: "تم النشر.", done_reject: "تم الرفض.", done_status: "تم تحديث الحالة.", done_ban: (n) => `تم الحظر. أُزيل ${n} بلاغ.`, done_unban: "تم إلغاء الحظر.",
+    e_forbidden: "لا يملك حسابك هذه الصلاحية.", e_network: "تعذّر الوصول إلى الخادم. تحقق من الاتصال.",
+    e_dup: "أدخل معرّف البلاغ الأصلي.", e_staff: "لا يمكنك حظر مشرف آخر.", e_generic: "حدث خطأ. حاول مرة أخرى.",
+    refresh: "تحديث", ago: (d) => d,
+  },
+};
+
+let lang = readPref("lang") || (navigator.language?.startsWith("ar") ? "ar" : "en");
+const t = (key, ...args) => { const v = T[lang][key] ?? T.en[key] ?? key; return typeof v === "function" ? v(...args) : v; };
+
+function readPref(key) { try { return localStorage.getItem(`rm-admin-${key}`); } catch { return null; } }
+function writePref(key, value) { try { localStorage.setItem(`rm-admin-${key}`, value); } catch { /* private mode */ } }
+
+function applyLanguage() {
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = t(el.dataset.t); });
+  document.querySelectorAll("[data-tp]").forEach((el) => { el.placeholder = t(el.dataset.tp); });
+  const toggle = document.getElementById("lang");
+  toggle.textContent = lang === "ar" ? "English" : "العربية";
+  toggle.lang = lang === "ar" ? "en" : "ar";
+}
+
+// ---------------------------------------------------------------- Small DOM helpers (user text only via textContent)
+function h(tag, attrs = {}, ...children) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of children.flat()) if (c != null && c !== false) el.append(c instanceof Node ? c : String(c));
+  return el;
+}
+const $ = (id) => document.getElementById(id);
+
+function formatDistance(m) {
+  if (m == null) return "";
+  const n = new Intl.NumberFormat(lang === "ar" ? "ar-EG" : "en", { maximumFractionDigits: m >= 1000 ? 1 : 0 });
+  return m >= 1000 ? `${n.format(m / 1000)} km` : `${n.format(m)} m`;
+}
+function formatDate(iso) {
+  return new Intl.DateTimeFormat(lang === "ar" ? "ar-EG" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+}
+function timeAgo(iso) {
+  const rtf = new Intl.RelativeTimeFormat(lang === "ar" ? "ar" : "en", { numeric: "auto" });
+  const s = (new Date(iso) - Date.now()) / 1000;
+  for (const [unit, size] of [["year", 31536000], ["month", 2592000], ["week", 604800], ["day", 86400], ["hour", 3600], ["minute", 60]]) {
+    if (Math.abs(s) >= size) return rtf.format(Math.round(s / size), unit);
+  }
+  return rtf.format(Math.round(s), "second");
+}
+
+let toastTimer;
+function toast(message, bad = false) {
+  const el = $("toast");
+  el.textContent = message;
+  el.className = bad ? "toast bad" : "toast";
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, bad ? 6000 : 2600);
+}
+function errorText(error) {
+  const msg = `${error?.message || ""} ${error?.code || ""}`;
+  if (msg.includes("forbidden") || msg.includes("42501")) return t("e_forbidden");
+  if (msg.includes("duplicate_of_required")) return t("e_dup");
+  if (msg.includes("cannot_ban_staff")) return t("e_staff");
+  if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) return t("e_network");
+  return t("e_generic");
+}
+
+// ---------------------------------------------------------------- State
+const VIEWS = [
+  { id: "review", icon: "⏳", key: "v_review", hot: true, filter: (q) => q.eq("needs_review", true).order("created_at", { ascending: true }) },
+  { id: "new", icon: "🆕", key: "v_new", hot: true, filter: (q) => q.eq("needs_review", false).eq("status", "submitted") },
+  { id: "verified", icon: "✅", key: "v_verified", filter: (q) => q.eq("needs_review", false).eq("status", "verified") },
+  { id: "progress", icon: "🛠️", key: "v_progress", filter: (q) => q.eq("needs_review", false).eq("status", "in_progress") },
+  { id: "flagged", icon: "🚩", key: "v_flagged", filter: (q) => q.gt("flag_count", 0).not("status", "in", "(rejected,duplicate)") },
+  { id: "resolved", icon: "🎉", key: "v_resolved", filter: (q) => q.eq("status", "resolved") },
+  { id: "rejected", icon: "🚫", key: "v_rejected", filter: (q) => q.in("status", ["rejected", "duplicate"]) },
+  { id: "all", icon: "🗂️", key: "v_all", filter: (q) => q },
+];
+const state = {
+  user: null, categories: new Map(), view: readPref("view") || "review", reports: [], selectedId: null,
+  counts: {}, search: "", category: "", detailMap: null,
+};
+
+// ---------------------------------------------------------------- Auth
+let pendingEmail = "";
+
+async function start() {
+  applyLanguage();
+  const { data } = await supabase.auth.getSession();
+  await onSession(data.session);
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_IN" || event === "SIGNED_OUT") onSession(session);
+  });
+}
+
+async function onSession(session) {
+  state.user = session?.user ?? null;
+  $("signout").hidden = !state.user;
+  $("who").textContent = state.user?.email ?? "";
+  for (const id of ["signin", "noaccess", "app"]) $(id).hidden = true;
+  if (!state.user) { showSignIn(); return; }
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", state.user.id).maybeSingle();
+  if (!profile || !["moderator", "agent", "admin"].includes(profile.role)) {
+    $("noaccess-id").textContent = state.user.id;
+    $("noaccess").hidden = false;
+    return;
+  }
+  $("app").hidden = false;
+  await loadCategories();
+  renderViews();
+  await refresh();
+}
+
+function showSignIn() {
+  $("signin").hidden = false;
+  setSignInStep(pendingEmail ? "code" : "email");
+}
+function setSignInStep(step) {
+  $("email-field").hidden = step !== "email";
+  $("code-field").hidden = step !== "code";
+  $("signin-submit").textContent = step === "email" ? t("sendCode") : t("signIn");
+  $("signin-submit").dataset.t = step === "email" ? "sendCode" : "signIn";
+  (step === "email" ? $("email") : $("code")).focus();
+}
+function signInError(message) {
+  $("signin-error").textContent = message || "";
+  $("signin-error").hidden = !message;
+}
+
+$("signin-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  signInError("");
+  const button = $("signin-submit");
+  button.disabled = true;
+  try {
+    if (!pendingEmail) {
+      const email = $("email").value.trim();
+      // shouldCreateUser: false — the dashboard never creates accounts; moderators already use the app.
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+      if (error) { signInError(/signups not allowed|not found|422/i.test(error.message) ? t("noAccount") : errorText(error)); return; }
+      pendingEmail = email;
+      setSignInStep("code");
+      toast(t("codeSent"));
+    } else {
+      const { error } = await supabase.auth.verifyOtp({ email: pendingEmail, token: $("code").value.trim(), type: "email" });
+      if (error) { signInError(t("badCode")); return; }
+      pendingEmail = "";
+      $("code").value = "";
+    }
+  } finally {
+    button.disabled = false;
+  }
+});
+$("change-email").addEventListener("click", () => { pendingEmail = ""; signInError(""); setSignInStep("email"); });
+$("signout").addEventListener("click", async () => { await supabase.auth.signOut(); });
+$("lang").addEventListener("click", () => {
+  lang = lang === "ar" ? "en" : "ar";
+  writePref("lang", lang);
+  applyLanguage();
+  if (!$("signin").hidden) setSignInStep(pendingEmail ? "code" : "email");
+  if (!$("app").hidden) { renderCategoryFilter(); renderViews(); renderList(); renderDetail(); }
+});
+
+// ---------------------------------------------------------------- Data
+async function loadCategories() {
+  const { data } = await supabase.from("categories").select("id, name_en, name_ar, icon, color").order("sort_order");
+  state.categories = new Map((data || []).map((c) => [c.id, c]));
+  renderCategoryFilter();
+}
+const categoryName = (id) => { const c = state.categories.get(id); return c ? (lang === "ar" ? c.name_ar : c.name_en) : id; };
+const categoryIcon = (id) => state.categories.get(id)?.icon || "📍";
+
+async function loadCounts() {
+  const results = await Promise.all(VIEWS.filter((v) => v.id !== "all").map(async (v) => {
+    const { count } = await v.filter(supabase.from("staff_reports").select("id", { count: "exact", head: true }));
+    return [v.id, count ?? 0];
+  }));
+  state.counts = Object.fromEntries(results);
+  renderViews();
+}
+
+let loadToken = 0;
+async function loadReports() {
+  const token = ++loadToken;
+  const view = VIEWS.find((v) => v.id === state.view) || VIEWS[0];
+  let query = view.filter(supabase.from("staff_reports").select("*")).limit(200);
+  if (state.category) query = query.eq("category_id", state.category);
+  if (state.search) {
+    const s = state.search.replace(/[%,()]/g, " ");
+    query = query.or(`address.ilike.%${s}%,description.ilike.%${s}%`);
+  }
+  const { data, error } = await query;
+  if (token !== loadToken) return;
+  if (error) { toast(errorText(error), true); return; }
+  state.reports = data || [];
+  if (!state.reports.some((r) => r.id === state.selectedId)) state.selectedId = null;
+  renderList();
+  renderDetail();
+}
+
+async function refresh() {
+  await Promise.all([loadCounts(), loadReports()]);
+}
+
+// ---------------------------------------------------------------- Views + list
+function renderViews() {
+  const nav = $("views");
+  nav.replaceChildren(
+    ...VIEWS.map((v) => {
+      const count = state.counts[v.id];
+      return h("button", {
+        class: "view", type: "button", "aria-current": String(v.id === state.view),
+        onclick: () => { state.view = v.id; writePref("view", v.id); state.selectedId = null; $("app").classList.remove("showing-detail"); renderViews(); loadReports(); },
+      }, h("span", { "aria-hidden": "true" }, v.icon), t(v.key),
+        count != null && v.id !== "all" ? h("span", { class: `count${v.hot && count > 0 ? " hot" : ""}` }, count) : null);
+    }),
+    h("p", { class: "help" }, t("help")),
+  );
+}
+
+function renderCategoryFilter() {
+  const select = $("category");
+  select.replaceChildren(h("option", { value: "" }, t("allCategories")),
+    ...[...state.categories.values()].map((c) => h("option", { value: c.id }, `${c.icon} ${lang === "ar" ? c.name_ar : c.name_en}`)));
+  select.value = state.category;
+}
+
+function statusChip(report) {
+  if (report.needs_review) return h("span", { class: "chip review" }, t("inReview"));
+  return h("span", { class: `chip ${report.status}` }, t(`s_${report.status}`));
+}
+
+function renderList() {
+  const list = $("items");
+  if (!state.reports.length) {
+    list.replaceChildren(h("li", { class: "empty" }, h("div", { class: "big" }, "✨"), h("strong", {}, t("emptyTitle")), h("div", {}, t("emptyBody"))));
+    return;
+  }
+  list.replaceChildren(...state.reports.map((r) => {
+    const photo = r.photo_paths?.[0];
+    return h("li", {
+      class: "item", role: "option", tabindex: "0", "aria-selected": String(r.id === state.selectedId), "data-id": r.id,
+      onclick: () => select(r.id),
+      onkeydown: (e) => { if (e.key === "Enter") select(r.id); },
+    },
+      photo ? h("img", { class: "thumb", src: PHOTO_BASE + photo, alt: "", loading: "lazy" }) : h("div", { class: "thumb", "aria-hidden": "true" }, categoryIcon(r.category_id)),
+      h("div", { style: "min-width:0" },
+        h("div", { class: "title" }, h("span", { "aria-hidden": "true" }, categoryIcon(r.category_id)), categoryName(r.category_id)),
+        h("div", { class: "sub" }, r.address || r.description || "—"),
+        h("div", { class: "sub" }, timeAgo(r.created_at)),
+        h("div", { class: "tags" }, statusChip(r),
+          r.flag_count > 0 ? h("span", { class: "chip flag" }, "🚩 ", t("flags", r.flag_count)) : null,
+          r.reporter_banned_at ? h("span", { class: "chip rejected" }, t("f_banned")) : null)));
+  }));
+}
+
+function select(id) {
+  state.selectedId = id;
+  document.querySelectorAll(".item").forEach((el) => el.setAttribute("aria-selected", String(el.dataset.id === id)));
+  $("app").classList.add("showing-detail");
+  renderDetail();
+}
+
+// ---------------------------------------------------------------- Detail
+async function renderDetail() {
+  const pane = $("detail");
+  if (state.detailMap) { state.detailMap.remove(); state.detailMap = null; }
+  const r = state.reports.find((x) => x.id === state.selectedId);
+  if (!r) {
+    pane.replaceChildren(h("div", { class: "empty" }, h("div", { class: "big" }, "🗂️"), t("pick")));
+    return;
+  }
+
+  const actions = h("div", { class: "actions" });
+  if (r.needs_review) {
+    actions.append(h("span", { class: "label" }, t("decide")),
+      h("button", { class: "btn ok", type: "button", onclick: () => approve(r) }, "✓ ", t("approve"), h("span", { class: "kbd" }, "A")),
+      h("button", { class: "btn bad", type: "button", onclick: () => reject(r) }, t("reject"), h("span", { class: "kbd" }, "R")));
+  } else {
+    actions.append(h("span", { class: "label" }, t("changeStatus")));
+    const next = {
+      submitted: [["verified", "verify", "primary"], ["in_progress", "start"], ["resolved", "resolve"]],
+      verified: [["in_progress", "start", "primary"], ["resolved", "resolve"]],
+      in_progress: [["resolved", "resolve", "ok"]],
+      resolved: [["in_progress", "reopen"]],
+      rejected: [["submitted", "reopen"]],
+      duplicate: [["submitted", "reopen"]],
+    }[r.status] || [];
+    next.forEach(([status, key, style], i) => actions.append(h("button", { class: `btn ${style || ""}`, type: "button", onclick: () => changeStatus(r, status, key) },
+      t(key), i === 0 && status === "verified" ? h("span", { class: "kbd" }, "A") : null)));
+    if (!["rejected", "duplicate"].includes(r.status)) {
+      actions.append(
+        h("button", { class: "btn", type: "button", onclick: () => markDuplicate(r) }, t("duplicate")),
+        h("button", { class: "btn bad", type: "button", onclick: () => reject(r) }, t("reject"), h("span", { class: "kbd" }, "R")));
+    }
+  }
+  if (r.reporter_id) {
+    actions.append(r.reporter_banned_at
+      ? h("button", { class: "btn ghost", type: "button", onclick: () => unban(r) }, t("unban"))
+      : h("button", { class: "btn ghost", type: "button", style: "color:var(--bad)", onclick: () => ban(r) }, "⛔ ", t("ban")));
+  }
+
+  const reasons = (r.review_reasons || []).map((code) => code === "far_from_device" ? t("r_far_from_device", r.device_distance_m) : t(`r_${code}`));
+  const mapBox = h("div", { class: "map", role: "img", "aria-label": `${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}` });
+  const historyList = h("ol", { class: "timeline" }, h("li", { class: "muted" }, "…"));
+  const flagsBox = h("div", { class: "muted" }, "…");
+
+  pane.replaceChildren(h("div", { class: "detail-inner" },
+    h("button", { class: "btn small back", type: "button", onclick: () => $("app").classList.remove("showing-detail") }, lang === "ar" ? "→ " : "← ", t("back")),
+    h("div", { class: "d-head" },
+      h("div", { class: "d-icon", "aria-hidden": "true" }, categoryIcon(r.category_id)),
+      h("div", {},
+        h("h2", {}, categoryName(r.category_id)),
+        h("div", { class: "meta" }, r.address || `${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}`, " · ", timeAgo(r.created_at)),
+        h("div", { class: "d-chips" }, statusChip(r),
+          h("span", { class: "chip neutral" }, t(`sev_${r.severity}`)),
+          r.upvote_count > 0 ? h("span", { class: "chip neutral" }, "👍 ", t("votes", r.upvote_count)) : null,
+          r.flag_count > 0 ? h("span", { class: "chip flag" }, "🚩 ", t("flags", r.flag_count)) : null))),
+    actions,
+    reasons.length ? h("div", { class: r.needs_review ? "alert" : "alert calm", role: "note" },
+      h("strong", {}, t(r.needs_review ? "whyReview" : "spamChecks")), h("ul", {}, reasons.map((x) => h("li", {}, x)))) : null,
+    r.photo_paths?.length ? h("div", { class: "photos" }, r.photo_paths.map((p) => h("a", { href: PHOTO_BASE + p, target: "_blank", rel: "noopener" }, h("img", { src: PHOTO_BASE + p, alt: "", loading: "lazy" })))) : null,
+    r.description ? h("p", { class: "desc" }, r.description) : null,
+    h("div", { class: "grid2" },
+      h("div", { class: "panel" }, h("h3", {}, t("location")), mapBox,
+        h("dl", { class: "facts", style: "margin-top:10px" },
+          h("dt", {}, t("f_address")), h("dd", {}, r.address || "—"),
+          h("dt", {}, t("f_coords")), h("dd", {}, `${r.lat.toFixed(5)}, ${r.lng.toFixed(5)} `,
+            h("a", { href: `https://www.openstreetmap.org/?mlat=${r.lat}&mlon=${r.lng}#map=18/${r.lat}/${r.lng}`, target: "_blank", rel: "noopener" }, t("openMaps"))),
+          r.device_distance_m != null ? [h("dt", {}, t("f_distance")), h("dd", {}, formatDistance(r.device_distance_m))] : null)),
+      h("div", { class: "panel" }, h("h3", {}, t("details")),
+        h("dl", { class: "facts" },
+          h("dt", {}, t("f_reported")), h("dd", {}, formatDate(r.created_at)),
+          h("dt", {}, t("f_severity")), h("dd", {}, t(`sev_${r.severity}`)),
+          h("dt", {}, t("reporter")), h("dd", {}, r.reporter_name || t("anonymous"),
+            r.is_anonymous ? h("span", { class: "muted" }, ` (${t("f_hidden")})`) : null),
+          h("dt", {}, t("f_banned")), h("dd", {}, r.reporter_banned_at ? `${t("yes")} · ${formatDate(r.reporter_banned_at)}` : t("no")),
+          h("dt", {}, t("f_id")), h("dd", {}, h("code", { style: "font-size:12px" }, r.id), copyButton(r.id)),
+          r.duplicate_of ? [h("dt", {}, t("duplicateOf")), h("dd", {}, h("code", { style: "font-size:12px" }, r.duplicate_of))] : null)),
+      h("div", { class: "panel" }, h("h3", {}, t("history")), historyList),
+      h("div", { class: "panel" }, h("h3", {}, t("flagsTitle")), flagsBox),
+    ),
+  ));
+  pane.scrollTop = 0;
+
+  showMap(mapBox, r);
+  const [{ data: history }, { data: flags }] = await Promise.all([
+    supabase.from("report_status_history").select("from_status, to_status, note, created_at").eq("report_id", r.id).order("created_at"),
+    supabase.from("report_flags").select("reason, created_at").eq("report_id", r.id).order("created_at", { ascending: false }),
+  ]);
+  if (state.selectedId !== r.id) return;
+  historyList.replaceChildren(...(history?.length ? history.map((x) => h("li", {},
+    h("strong", {}, t(`s_${x.to_status}`)), " · ", h("span", { class: "muted" }, formatDate(x.created_at)),
+    x.note ? h("div", { class: "note" }, x.note) : null)) : [h("li", { class: "muted" }, t("noHistory"))]));
+  flagsBox.replaceChildren(flags?.length
+    ? h("ul", { style: "margin:0;padding-inline-start:18px" }, flags.map((f) => h("li", {}, t(`fr_${f.reason}`), h("span", { class: "muted" }, ` · ${timeAgo(f.created_at)}`))))
+    : t("noFlags"));
+}
+
+function copyButton(text) {
+  const b = h("button", { class: "copy", type: "button" }, t("copy"));
+  b.addEventListener("click", async () => { try { await navigator.clipboard.writeText(text); b.textContent = t("copied"); } catch { /* clipboard blocked */ } });
+  return b;
+}
+
+async function showMap(container, r) {
+  try {
+    const maplibre = window.maplibregl || (await import("https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/+esm")).default;
+    if (state.selectedId !== r.id) return;
+    const map = new maplibre.Map({ container, style: MAP_STYLE, center: [r.lng, r.lat], zoom: 16, attributionControl: { compact: true }, cooperativeGestures: true });
+    new maplibre.Marker({ color: "#e8590c" }).setLngLat([r.lng, r.lat]).addTo(map);
+    state.detailMap = map;
+  } catch {
+    container.textContent = `${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}`;
+  }
+}
+
+// ---------------------------------------------------------------- Actions
+function ask({ title, body, okText, okClass = "primary", noteLabel = t("noteLabel"), withDuplicate = false }) {
+  const dialog = $("dialog");
+  $("dialog-title").textContent = title;
+  $("dialog-body").textContent = body;
+  $("dialog-note-label").textContent = noteLabel;
+  $("dialog-note").value = "";
+  $("dialog-dup").value = "";
+  $("dialog-dup-field").hidden = !withDuplicate;
+  const ok = $("dialog-ok");
+  ok.textContent = okText;
+  ok.className = `btn ${okClass}`;
+  return new Promise((resolve) => {
+    dialog.addEventListener("close", () => {
+      resolve(dialog.returnValue === "ok" ? { note: $("dialog-note").value.trim() || null, duplicateOf: $("dialog-dup").value.trim() || null } : null);
+    }, { once: true });
+    dialog.showModal();
+    (withDuplicate ? $("dialog-dup") : $("dialog-note")).focus();
+  });
+}
+
+async function run(rpc, args, doneText) {
+  const { data, error } = await supabase.rpc(rpc, args);
+  if (error) { toast(errorText(error), true); return false; }
+  toast(typeof doneText === "function" ? doneText(data) : doneText);
+  const index = state.reports.findIndex((x) => x.id === args.p_report_id);
+  await refresh();
+  // Keep the moderator moving: select the next report in the list.
+  const next = state.reports[Math.min(Math.max(index, 0), state.reports.length - 1)];
+  if (next && !state.reports.some((x) => x.id === state.selectedId)) select(next.id);
+  return true;
+}
+
+function approve(r) { return run("review_report", { p_report_id: r.id, p_approve: true, p_note: null }, t("done_approve")); }
+
+async function reject(r) {
+  const answer = await ask({ title: t("d_reject"), body: t("d_reject_body"), okText: t("reject"), okClass: "bad" });
+  if (!answer) return;
+  if (r.needs_review) return run("review_report", { p_report_id: r.id, p_approve: false, p_note: answer.note }, t("done_reject"));
+  return run("set_report_status", { p_report_id: r.id, p_status: "rejected", p_note: answer.note }, t("done_reject"));
+}
+
+async function changeStatus(r, status, key) {
+  const answer = await ask({ title: t("d_status", t(`s_${status}`)), body: t("d_status_body"), okText: t(key) });
+  if (!answer) return;
+  return run("set_report_status", { p_report_id: r.id, p_status: status, p_note: answer.note }, t("done_status"));
+}
+
+async function markDuplicate(r) {
+  const answer = await ask({ title: t("d_dup"), body: t("d_dup_body"), okText: t("duplicate"), withDuplicate: true });
+  if (!answer) return;
+  return run("set_report_status", { p_report_id: r.id, p_status: "duplicate", p_note: answer.note, p_duplicate_of: answer.duplicateOf }, t("done_status"));
+}
+
+async function ban(r) {
+  const answer = await ask({ title: t("d_ban"), body: t("d_ban_body"), okText: t("ban"), okClass: "bad", noteLabel: t("reasonLabel") });
+  if (!answer) return;
+  const { data, error } = await supabase.rpc("ban_user", { p_user_id: r.reporter_id, p_reason: answer.note });
+  if (error) { toast(errorText(error), true); return; }
+  toast(t("done_ban", data ?? 0));
+  await refresh();
+}
+
+async function unban(r) {
+  const answer = await ask({ title: t("d_unban"), body: t("d_unban_body"), okText: t("unban"), noteLabel: t("reasonLabel") });
+  if (!answer) return;
+  const { error } = await supabase.rpc("unban_user", { p_user_id: r.reporter_id });
+  if (error) { toast(errorText(error), true); return; }
+  toast(t("done_unban"));
+  await refresh();
+}
+
+// ---------------------------------------------------------------- Filters, keys, refresh
+let searchTimer;
+$("search").addEventListener("input", (e) => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { state.search = e.target.value.trim(); loadReports(); }, 300); });
+$("category").addEventListener("change", (e) => { state.category = e.target.value; loadReports(); });
+
+document.addEventListener("keydown", (e) => {
+  if ($("app").hidden || $("dialog").open || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+  const index = state.reports.findIndex((x) => x.id === state.selectedId);
+  const r = state.reports[index];
+  if (e.key === "j" || e.key === "ArrowDown") { const n = state.reports[index + 1] || state.reports[0]; if (n) { select(n.id); document.querySelector(`.item[data-id="${n.id}"]`)?.scrollIntoView({ block: "nearest" }); } e.preventDefault(); }
+  else if (e.key === "k" || e.key === "ArrowUp") { const n = state.reports[index - 1] || state.reports[state.reports.length - 1]; if (n) { select(n.id); document.querySelector(`.item[data-id="${n.id}"]`)?.scrollIntoView({ block: "nearest" }); } e.preventDefault(); }
+  else if (e.key === "a" && r) { r.needs_review ? approve(r) : r.status === "submitted" && changeStatus(r, "verified", "verify"); }
+  else if (e.key === "r" && r && !["rejected", "duplicate"].includes(r.status)) { reject(r); }
+});
+
+// New reports arrive while the page is open: refresh the counts every minute and when the tab comes back.
+setInterval(() => { if (!$("app").hidden && !document.hidden) loadCounts(); }, 60000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden && !$("app").hidden) refresh(); });
+
+start();
+</script>
+</body>
+</html>
