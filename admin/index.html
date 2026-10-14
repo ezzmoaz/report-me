@@ -4,15 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Report Me Moderation</title>
+<title>Report Me Dashboard</title>
 <link rel="icon" href="../assets/icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <style>
-/* Moderation and authority dashboard. Layout: header, then three columns on wide screens
-   (views | list | detail); on phones the detail replaces the list and the views become a scrolling tab row. */
+/* Government dashboard. Layout: header, then three columns on wide screens (lists | items | detail);
+   on phones the detail replaces the list and the lists become a scrolling tab row. */
 :root {
   --bg: #fffaf6; --surface: #ffffff; --sunken: #fbf3ec; --fg: #22180f; --muted: #6b5d52; --line: #f0e3d8;
   --brand: #e8590c; --brand-deep: #b83c0c; --brand-soft: #fde8db; --on-brand: #ffffff;
@@ -48,7 +48,6 @@ button { cursor: pointer; }
 .muted { color: var(--muted); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* Buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 16px;
   border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; font-size: 14px; }
 .btn:hover { border-color: var(--brand); }
@@ -60,7 +59,6 @@ button { cursor: pointer; }
 .btn.small { min-height: 32px; padding: 4px 12px; font-size: 13px; border-radius: 10px; }
 .kbd { font-size: 11px; padding: 1px 6px; border-radius: 6px; border: 1px solid currentColor; opacity: .6; font-weight: 500; }
 
-/* Header */
 header.top { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line);
   background: color-mix(in srgb, var(--bg) 92%, transparent); position: sticky; top: 0; z-index: 5; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; white-space: nowrap; }
@@ -69,40 +67,41 @@ header.top { display: flex; align-items: center; gap: 12px; padding: 10px 16px; 
 .top .spacer { flex: 1; }
 .who { color: var(--muted); font-size: 13px; max-width: 34ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Sign in */
 .center { min-height: calc(100vh - 60px); display: grid; place-items: center; padding: 24px 16px; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 28px; box-shadow: var(--shadow); width: min(420px, 100%); }
 .card h1 { font-size: 24px; margin: 0 0 6px; }
 .card p { margin: 0 0 18px; }
 .field { display: grid; gap: 6px; margin-bottom: 14px; }
-.field label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.field label, .field .label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.field .hint { font-size: 12px; color: var(--muted); }
 .input { width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); }
 .input:focus { border-color: var(--brand); outline: none; }
+textarea.input { min-height: 80px; resize: vertical; }
 .code { letter-spacing: .4em; font-size: 22px; text-align: center; font-variant-numeric: tabular-nums; }
 .error { color: var(--bad); background: var(--bad-soft); padding: 10px 12px; border-radius: 10px; font-size: 14px; margin-bottom: 14px; }
 
-/* Layout */
 .app { display: grid; grid-template-columns: 230px minmax(300px, 400px) minmax(0, 1fr); height: calc(100vh - 57px); }
 nav.views { border-inline-end: 1px solid var(--line); padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
-.view { display: flex; align-items: center; gap: 10px; width: 100%; text-align: start; padding: 10px 12px; border-radius: 12px; border: 0; background: transparent; font-weight: 500; }
+.view { display: flex; align-items: center; gap: 10px; width: 100%; text-align: start; padding: 9px 12px; border-radius: 12px; border: 0; background: transparent; font-weight: 500; }
 .view:hover { background: var(--sunken); }
 .view[aria-current="true"] { background: var(--brand-soft); color: var(--brand-deep); font-weight: 600; }
 .view .count { margin-inline-start: auto; font-size: 12px; font-weight: 600; min-width: 24px; text-align: center; padding: 1px 8px; border-radius: 999px; background: var(--sunken); color: var(--muted); }
 .view[aria-current="true"] .count { background: var(--surface); color: var(--brand-deep); }
 .view .count.hot { background: var(--brand); color: var(--on-brand); }
 .view .count.alarm { background: var(--bad); color: #fff; }
-.views .sep { height: 1px; background: var(--line); margin: 8px 6px; }
-.views .scope { font-size: 12px; color: var(--muted); padding: 4px 12px 10px; }
+.views .section { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding: 14px 12px 4px; }
+.views .scope { font-size: 12px; color: var(--muted); padding: 4px 12px 8px; }
 .views .scope strong { display: block; color: var(--fg); font-size: 13px; }
 .views .help { margin-top: auto; font-size: 12px; color: var(--muted); padding: 12px; line-height: 1.7; }
 
 section.list { border-inline-end: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
 .filters { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; border-bottom: 1px solid var(--line); }
 .filters .input { min-height: 38px; padding: 6px 10px; font-size: 14px; }
-.filters #search { flex: 1 1 100%; }
-.filters select { flex: 1 1 40%; min-width: 0; }
+.filters .wide { flex: 1 1 100%; }
+.filters select { flex: 1 1 30%; min-width: 0; }
 ul.items { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
 .item { display: grid; grid-template-columns: 56px 1fr; gap: 12px; padding: 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.item.text-only { grid-template-columns: 1fr; }
 .item:hover { background: var(--sunken); }
 .item[aria-selected="true"] { background: var(--brand-soft); }
 .thumb { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: var(--sunken); display: grid; place-items: center; font-size: 26px; }
@@ -113,23 +112,22 @@ ul.items { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
 .empty .big { font-size: 36px; }
 
 .chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
-.chip.submitted { background: var(--info-soft); color: var(--info); }
+.chip.new, .chip.submitted { background: var(--info-soft); color: var(--info); }
 .chip.verified { background: var(--brand-soft); color: var(--brand-deep); }
 .chip.in_progress { background: var(--warn-soft); color: var(--warn); }
 .chip.resolved, .chip.active { background: var(--ok-soft); color: var(--ok); }
 .chip.rejected, .chip.flag, .chip.review, .chip.overdue { background: var(--bad-soft); color: var(--bad); }
-.chip.duplicate, .chip.neutral { background: var(--sunken); color: var(--muted); }
+.chip.duplicate, .chip.transferred, .chip.neutral { background: var(--sunken); color: var(--muted); }
 
-/* Detail */
 section.detail { overflow-y: auto; min-height: 0; }
-.detail-inner { padding: 20px 24px 40px; max-width: 880px; }
+.detail-inner { padding: 20px 24px 40px; max-width: 900px; }
 .back { display: none; }
 .d-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; }
 .d-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--brand-soft); display: grid; place-items: center; font-size: 28px; flex: none; }
 .d-head h2 { margin: 0; font-size: 22px; line-height: 1.25; }
 .d-head .meta { color: var(--muted); font-size: 14px; }
 .d-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.alert { border-radius: var(--radius); padding: 12px 14px; margin: 14px 0; background: var(--bad-soft); color: var(--fg); border: 1px solid color-mix(in srgb, var(--bad) 30%, transparent); }
+.alert { border-radius: var(--radius); padding: 12px 14px; margin: 14px 0; background: var(--bad-soft); border: 1px solid color-mix(in srgb, var(--bad) 30%, transparent); }
 .alert strong { color: var(--bad); }
 .alert.calm { background: var(--sunken); border-color: var(--line); }
 .alert.calm strong { color: var(--muted); }
@@ -142,7 +140,6 @@ section.detail { overflow-y: auto; min-height: 0; }
 .desc { font-size: 16px; white-space: pre-wrap; margin: 0 0 16px; }
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
-.panel.wide { grid-column: 1 / -1; }
 .panel h3 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 dl.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: 14px; }
 dl.facts dt { color: var(--muted); }
@@ -156,43 +153,44 @@ ol.timeline li::before { content: ""; position: absolute; inset-inline-start: 4p
 ol.timeline li::after { content: ""; position: absolute; inset-inline-start: 8px; top: 18px; bottom: 0; width: 1px; background: var(--line); }
 ol.timeline li:last-child::after { display: none; }
 ol.timeline .note { color: var(--muted); }
+ul.plain { list-style: none; margin: 0; padding: 0; }
+ul.plain li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+ul.plain li:last-child { border-bottom: 0; }
+ul.plain li .grow { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.linkish { background: none; border: 0; padding: 0; color: var(--brand); font-weight: 600; text-align: start; }
 .copy { border: 0; background: none; color: var(--brand); font-size: 12px; padding: 0 4px; }
 
-/* Admin: areas and authorities */
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 14px; }
 .switch { display: flex; align-items: center; gap: 10px; font-weight: 500; }
-.switch input { width: 20px; height: 20px; accent-color: var(--brand); }
+.switch input, .checks input { width: 18px; height: 18px; accent-color: var(--brand); }
+.checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.checks label { display: flex; align-items: center; gap: 8px; font-weight: 500; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
 table.rules { width: 100%; border-collapse: collapse; font-size: 14px; }
 table.rules th, table.rules td { text-align: start; padding: 8px 6px; border-bottom: 1px solid var(--line); }
 table.rules th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
 table.rules input { width: 80px; min-height: 36px; padding: 4px 8px; }
-ul.members { list-style: none; margin: 0 0 12px; padding: 0; }
-ul.members li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
-ul.members li span { flex: 1; overflow-wrap: anywhere; }
-.inline { display: flex; gap: 8px; }
-.inline .input { flex: 1; min-height: 40px; }
+.inline { display: flex; gap: 8px; flex-wrap: wrap; }
+.inline .input { flex: 1; min-height: 40px; min-width: 160px; }
+.inline select.input { flex: 0 0 auto; min-width: 110px; }
 .level-tag { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .crumbs { color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+.stack { display: grid; gap: 16px; }
 
-/* Dialog */
 dialog { border: 1px solid var(--line); border-radius: 18px; padding: 22px; width: min(460px, calc(100vw - 32px)); background: var(--surface); color: var(--fg); box-shadow: var(--shadow); }
 dialog::backdrop { background: rgba(20, 10, 4, .45); }
 dialog h3 { margin: 0 0 6px; font-size: 18px; }
 dialog p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
-dialog textarea { min-height: 90px; resize: vertical; }
 .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
 
 .toast { position: fixed; inset-inline: 0; bottom: 20px; margin: auto; width: max-content; max-width: calc(100vw - 32px); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-weight: 500; z-index: 20; box-shadow: var(--shadow); }
 .toast.bad { background: var(--bad); color: #fff; }
 
-@media (max-width: 1080px) {
-  .app { grid-template-columns: 200px minmax(280px, 360px) minmax(0, 1fr); }
-}
+@media (max-width: 1080px) { .app { grid-template-columns: 200px minmax(280px, 360px) minmax(0, 1fr); } }
 @media (max-width: 820px) {
   .app { display: flex; flex-direction: column; height: auto; min-height: calc(100vh - 57px); }
   nav.views { flex-direction: row; overflow-x: auto; border-inline-end: 0; border-bottom: 1px solid var(--line); padding: 8px; scrollbar-width: none; }
   .view { width: auto; white-space: nowrap; }
-  .views .help, .views .scope, .views .sep { display: none; }
+  .views .help, .views .scope, .views .section { display: none; }
   section.list { border-inline-end: 0; }
   ul.items { overflow: visible; }
   .app.showing-detail section.list, .app.showing-detail nav.views { display: none; }
@@ -205,18 +203,17 @@ dialog textarea { min-height: 90px; resize: vertical; }
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img src="../assets/icon.png" alt=""><span>Report Me</span><small data-t="moderation">Moderation</small></div>
+  <div class="brand"><img src="../assets/icon.png" alt=""><span>Report Me</span><small data-t="dashboard">Dashboard</small></div>
   <div class="spacer"></div>
   <span class="who" id="who"></span>
   <button class="btn small ghost" id="lang" type="button" lang="ar">العربية</button>
   <button class="btn small" id="signout" type="button" data-t="signOut" hidden>Sign out</button>
 </header>
 
-<!-- Sign in -->
 <main id="signin" class="center" hidden>
   <form class="card" id="signin-form" autocomplete="on">
-    <h1 data-t="signInTitle">Moderator sign in</h1>
-    <p class="muted" data-t="signInBody">We'll email you a 6-digit code. Only moderator and authority accounts can open the dashboard.</p>
+    <h1 data-t="signInTitle">Dashboard sign in</h1>
+    <p class="muted" data-t="signInBody">We'll email you a 6-digit code.</p>
     <div class="error" id="signin-error" role="alert" hidden></div>
     <div class="field" id="email-field">
       <label for="email" data-t="email">Email</label>
@@ -231,44 +228,28 @@ dialog textarea { min-height: 90px; resize: vertical; }
   </form>
 </main>
 
-<!-- Signed in, but neither staff nor authority -->
 <main id="noaccess" class="center" hidden>
   <div class="card">
     <h1 data-t="noAccessTitle">No dashboard access</h1>
-    <p class="muted" data-t="noAccessBody">This account isn't a moderator or a member of a local authority. Ask an admin to add it, then sign in again.</p>
+    <p class="muted" data-t="noAccessBody">This account isn't part of the central team or of a government entity.</p>
     <p class="muted" style="font-size:13px"><span data-t="accountId">Account ID</span>: <code id="noaccess-id"></code></p>
   </div>
 </main>
 
-<!-- Dashboard -->
 <div class="app" id="app" hidden>
-  <nav class="views" id="views" aria-label="Report lists"></nav>
-  <section class="list" aria-label="Reports">
-    <div class="filters" id="filters">
-      <label class="sr" for="search" data-t="search">Search</label>
-      <input class="input" id="search" type="search" data-tp="searchPlaceholder" placeholder="Search address or text">
-      <label class="sr" for="governorate" data-t="governorate">Governorate</label>
-      <select class="input" id="governorate"></select>
-      <label class="sr" for="category" data-t="category">Category</label>
-      <select class="input" id="category"></select>
-    </div>
-    <ul class="items" id="items" role="listbox" aria-label="Reports"></ul>
+  <nav class="views" id="views" aria-label="Lists"></nav>
+  <section class="list" aria-label="Items">
+    <div class="filters" id="filters"></div>
+    <ul class="items" id="items" role="listbox"></ul>
   </section>
   <section class="detail" id="detail" aria-live="polite"></section>
 </div>
 
 <dialog id="dialog">
-  <form method="dialog" id="dialog-form">
+  <form method="dialog">
     <h3 id="dialog-title"></h3>
     <p id="dialog-body"></p>
-    <div class="field" id="dialog-dup-field" hidden>
-      <label for="dialog-dup" data-t="duplicateOf">Original report ID</label>
-      <input class="input" id="dialog-dup" placeholder="00000000-0000-0000-0000-000000000000">
-    </div>
-    <div class="field" id="dialog-assign-field" hidden>
-      <label for="dialog-assign" data-t="assignTo">Send to</label>
-      <select class="input" id="dialog-assign"></select>
-    </div>
+    <div id="dialog-extra"></div>
     <div class="field">
       <label for="dialog-note" id="dialog-note-label"></label>
       <textarea class="input" id="dialog-note" maxlength="500"></textarea>
@@ -285,160 +266,146 @@ dialog textarea { min-height: 90px; resize: vertical; }
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
 
-// Public values (the same ones the apps ship with). Access is enforced by the database: staff_reports shows
-// moderators and admins everything, and authority members only the reports inside their own area.
+// Public values (the same ones the apps ship with). The database decides what each account can see and do:
+// staff_tasks shows an entity only the tasks of its sector inside its area; configuration needs the super admin.
 const SUPABASE_URL = "https://puiltzmjhxecmrjbupjf.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1aWx0em1qaHhlY21yamJ1cGpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNTc3NzYsImV4cCI6MjEwNjkzMzc3Nn0.QcUvq49pmAGJR5WkrAHOaplERO3EYzI1Z3QE5aXo4Uo";
 const PHOTO_BASE = `${SUPABASE_URL}/storage/v1/object/public/report-photos/`;
 const MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
-const OPEN = ["submitted", "verified", "in_progress"];
+const OPEN = ["new", "verified", "in_progress"];
+const DONE = ["resolved", "rejected", "transferred"];
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ---------------------------------------------------------------- Text (English / Arabic)
+// ---------------------------------------------------------------- Text
 const T = {
   en: {
-    moderation: "Moderation", signOut: "Sign out", signInTitle: "Dashboard sign in",
-    signInBody: "We'll email you a 6-digit code. Only moderator and authority accounts can open the dashboard.",
+    dashboard: "Dashboard", signOut: "Sign out", signInTitle: "Dashboard sign in", signInBody: "We'll email you a 6-digit code.",
     email: "Email", code: "6-digit code", changeEmail: "Use a different email", sendCode: "Send code", signIn: "Sign in",
     codeSent: "Code sent. Check your email.", badCode: "That code didn't work. Check it, or send a new one.",
     noAccount: "There's no account with this email. Sign in once in the app first.",
     noAccessTitle: "No dashboard access", accountId: "Account ID",
-    noAccessBody: "This account isn't a moderator or a member of a local authority. Ask an admin to add it, then sign in again.",
-    search: "Search", searchPlaceholder: "Search address or text", category: "Category", allCategories: "All categories",
-    governorate: "Governorate", allGovernorates: "All governorates",
-    v_mine: "Assigned to us", v_review: "Waiting for review", v_new: "New", v_verified: "Verified", v_progress: "Being fixed",
-    v_overdue: "Overdue", v_central: "With the central team", v_flagged: "Flagged", v_resolved: "Fixed", v_rejected: "Rejected",
-    v_all: "All reports", v_admin: "Areas and authorities",
-    scopeStaff: "Whole country", scopeAs: "Signed in for",
-    help: "Keys: J / K next and previous, A approve or verify, R reject, E escalate.",
-    s_submitted: "New", s_verified: "Verified", s_in_progress: "Being fixed", s_resolved: "Fixed", s_rejected: "Rejected", s_duplicate: "Duplicate",
-    inReview: "Waiting for review", overdue: "Overdue", flags: (n) => n === 1 ? "1 flag" : `${n} flags`, votes: (n) => n === 1 ? "1 confirmation" : `${n} confirmations`,
-    emptyTitle: "Nothing here", emptyBody: "No reports match this list.", pick: "Pick a report to see the details.",
-    back: "Back to the list", whyReview: "Why it's waiting for review", spamChecks: "Anti-spam checks when it was sent",
-    r_no_device_location: "The phone didn't share its location when the report was sent.",
-    r_far_from_device: (m) => `The pin is ${formatDistance(m)} from where the phone was.`,
-    r_mock_location: "The phone was using a fake-GPS app.",
-    r_impossible_travel: "The reporter's location jumped faster than anyone can travel.",
-    r_flagged: "People flagged it.",
-    decide: "Decision", changeStatus: "Change status",
-    approve: "Approve and publish", reject: "Reject", verify: "Verify", start: "Mark being fixed", resolve: "Mark fixed",
-    duplicate: "Duplicate", ban: "Ban reporter", unban: "Unban reporter", reopen: "Reopen",
-    escalate: "Escalate", assign: "Send to…",
-    details: "Details", location: "Location", reporter: "Reporter", history: "Status history", flagsTitle: "Flags",
-    responsibility: "Responsibility", f_area: "Area", f_responsible: "Responsible", f_deadline: "Deadline", f_escalations: "Escalations",
-    central: "Central team (moderators)", noArea: "Outside the mapped areas", movedTo: "Sent to", movedFrom: "from",
-    a_created: "Assigned", a_overdue: "Escalated: deadline missed", a_manual: "Escalated by hand", a_reassigned: "Reassigned",
-    assignments: "Who handled it",
-    f_category: "Category", f_severity: "Severity", f_reported: "Reported", f_address: "Address", f_coords: "Coordinates",
-    f_distance: "Pin to phone", f_name: "Name", f_hidden: "Hidden from the public", f_banned: "Banned", f_id: "ID",
-    anonymous: "No name", yes: "Yes", no: "No", copy: "Copy", copied: "Copied",
-    sev_low: "Low", sev_medium: "Medium", sev_high: "High",
+    noAccessBody: "This account isn't part of the central team or of a government entity. Ask your entity's admin to add it.",
+    search: "Search address or text", allCategories: "All issue types", allGovernorates: "All governorates", allSectors: "All sectors",
+    sec_work: "Work", sec_central: "Central team", sec_setup: "Setup",
+    v_new: "New for us", v_verified: "Verified", v_progress: "Being fixed", v_overdue: "Overdue", v_below: "Below us",
+    v_done: "Done", v_all: "All tasks", v_review: "Waiting for review", v_central: "Central queue", v_open: "Open tasks",
+    v_flagged: "Flagged", v_reports: "All reports", v_entities: "Entities", v_offices: "My offices", v_categories: "Issue types",
+    v_sectors: "Sectors", v_settings: "Settings",
+    scopeCentral: "Central team", help: "Keys: J / K next and previous, A verify or approve, R reject, E escalate.",
+    st_new: "New", st_verified: "Verified", st_in_progress: "Being fixed", st_resolved: "Fixed", st_rejected: "Rejected", st_transferred: "Transferred",
+    rs_submitted: "New", rs_verified: "Verified", rs_in_progress: "Being fixed", rs_resolved: "Fixed", rs_rejected: "Rejected", rs_duplicate: "Duplicate",
+    inReview: "Waiting for review", overdue: "Overdue", flags: (n) => n === 1 ? "1 flag" : `${n} flags`, votes: (n) => n === 1 ? "1 person affected" : `${n} people affected`,
+    emptyTitle: "Nothing here", emptyBody: "Nothing matches this list.", pick: "Pick an item to see the details.", back: "Back to the list",
+    whyReview: "Why it's waiting for review", spamChecks: "Anti-spam checks when it was sent",
+    r_no_device_location: "The phone didn't share its location.", r_far_from_device: (m) => `The pin is ${fmtDistance(m)} from where the phone was.`,
+    r_mock_location: "The phone was using a fake-GPS app.", r_impossible_travel: "The reporter's location jumped faster than anyone can travel.", r_flagged: "People flagged it.",
+    changeStatus: "Update this task", decide: "Decision",
+    verify: "Verify", start: "Mark being fixed", resolve: "Mark fixed", reject: "Reject", reopen: "Reopen", escalate: "Escalate", transfer: "Wrong sector…", assign: "Assign…",
+    approve: "Approve and publish", resolveAll: "Mark whole report fixed", rejectAll: "Reject report", duplicate: "Duplicate…", ban: "Ban reporter", unban: "Unban reporter",
+    thisTask: "This task", f_sector: "Sector", f_entity: "Responsible", f_deadline: "Deadline", f_escalations: "Escalations", f_area: "Area",
+    central: "Central team", otherTasks: "All sectors on this report", taskHistory: "Task history", statusHistory: "What the citizen sees", flagsTitle: "Flags",
+    location: "Location", details: "Details", f_reported: "Reported", f_severity: "Severity", reporter: "Reporter", anonymous: "No name", f_hidden: "hidden from the public",
+    f_banned: "Banned", f_id: "ID", f_address: "Address", f_coords: "Coordinates", openMaps: "Open in maps", copy: "Copy", copied: "Copied", yes: "Yes", no: "No",
+    sev_low: "Low", sev_medium: "Medium", sev_high: "High", noHistory: "No changes yet.", noFlags: "No flags.", tasksTitle: "Tasks",
     fr_spam: "Spam", fr_inappropriate: "Inappropriate", fr_wrong_location: "Wrong location", fr_already_fixed: "Already fixed",
-    noFlags: "No flags.", noHistory: "No changes yet.", openMaps: "Open in maps",
-    cancel: "Cancel", duplicateOf: "Original report ID", assignTo: "Send to",
-    noteLabel: "Note (optional, shown on the report's timeline)", reasonLabel: "Reason (optional, not shown to the reporter)",
-    escalateNoteLabel: "Why (optional, sent to the next authority)",
-    d_reject: "Reject this report?", d_reject_body: "It disappears from the map. The reporter still sees it, marked rejected.",
-    d_status: (s) => `Mark as “${s}”?`, d_status_body: "The reporter and everyone who confirmed it get a notification.",
-    d_dup: "Mark as duplicate?", d_dup_body: "Paste the ID of the original report. This one is hidden and points to it.",
+    ev_created: "Assigned", ev_overdue: "Escalated: deadline missed", ev_escalated: "Escalated by hand", ev_assigned: "Assigned by hand", ev_transferred: "Transferred to another sector", ev_status: "Status",
+    to: "to",
+    cancel: "Cancel", noteLabel: "Note (optional, shown to the citizen)", escalateNote: "Why (optional, sent to the next office)", reasonLabel: "Reason (optional, internal)",
+    d_status: (s) => `Mark this task “${s}”?`, d_status_body: "The citizen and everyone affected get a notification when the report status changes.",
+    d_escalate: "Escalate to the next level?", d_escalate_body: "The task moves up within the same sector (unit → directorate → ministry → central team), which gets an email.",
+    d_transfer: "Send to another sector?", d_transfer_body: "This task closes as transferred and the right sector gets a new task.", pickSector: "Sector",
+    d_assign: "Assign to an office?", d_assign_body: "Pick the office of this sector that should handle it.", pickEntity: "Office",
+    d_reject_all: "Reject the whole report?", d_reject_all_body: "It disappears from the map and every open task closes.",
+    d_resolve_all: "Mark the whole report fixed?", d_resolve_all_body: "Every open task closes as fixed.",
+    d_dup: "Mark as duplicate?", d_dup_body: "Paste the ID of the original report. Its open tasks close.", dupId: "Original report ID",
     d_ban: "Ban this reporter?", d_ban_body: "They can't send reports any more, and all their reports are rejected.",
-    d_unban: "Unban this reporter?", d_unban_body: "They can send reports again. Rejected reports stay rejected.",
-    d_escalate: "Escalate to the next authority?", d_escalate_body: "It moves up one level (subdistrict → district → governorate → central team), which gets an email.",
-    d_assign: "Send this report to an authority?", d_assign_body: "Pick the authority that should handle it. It gets an email and a new deadline.",
-    done_approve: "Published.", done_reject: "Rejected.", done_status: "Status updated.", done_ban: (n) => `Banned. ${n} reports removed.`, done_unban: "Unbanned.",
-    done_escalate: (name) => `Escalated to ${name}.`, done_assign: "Sent.",
-    e_forbidden: "Your account can't do that.", e_network: "Couldn't reach the server. Check your connection.",
-    e_dup: "Enter the original report's ID.", e_staff: "You can't ban another moderator.", e_generic: "Something went wrong. Try again.",
-    e_central: "This report is already with the central team.", e_noauth: "That area has no active authority.",
+    d_unban: "Unban this reporter?", d_unban_body: "They can send reports again.",
+    done: "Done.", e_forbidden: "Your account can't do that.", e_network: "Couldn't reach the server.", e_generic: "Something went wrong. Try again.",
+    e_central: "This task is already with the central team.", e_no_entity: "Pick an active office of this sector.", e_same_sector: "That's the same sector.",
     e_user: "No account with that email. They need to sign in to the app once first.", e_deadline: "Deadlines must be at least 1 day.",
-    // Admin
-    lv1: "Governorate", lv2: "District", lv3: "Subdistrict",
-    settings: "Settings", restrictLabel: "Accept reports only inside Syria",
-    restrictHelp: "Turn off only for testing outside Syria. Reports outside the mapped areas go to the central team.",
-    deadlines: "Deadlines before escalation", level: "Level", verifyDays: "Days to verify", fixDays: "Days to fix", save: "Save",
-    areasTitle: "Areas", areaSearch: "Search areas", allLevels: "All levels", hasAuthority: "Authority set", noAuthority: "No authority",
-    pickArea: "Pick an area to set up its authority.", authority: "Authority",
-    nameEn: "Name (English)", nameAr: "Name (Arabic)", contactEmail: "Office email (gets every report)", phone: "Phone", activeLabel: "Active",
-    members: "Members (dashboard accounts)", noMembers: "No members yet. Add the people who will handle reports here.",
-    addMember: "Add", memberEmail: "Email of someone who has signed in to the app", remove: "Remove",
-    reroute: "Re-route open reports", rerouteHelp: "After adding or switching off authorities, send open reports to the closest active one.",
-    saved: "Saved.", rerouted: (n) => `${n} reports re-routed.`, added: "Added.", removed: "Removed.",
-    openCount: (n) => `${n} open`, overdueCount: (n) => `${n} overdue`,
+    e_dup: "Enter the original report's ID.", e_staff: "You can't ban another moderator.",
+    // Setup
+    lv0: "Ministry (whole country)", lv1: "Governorate", lv2: "District", lv3: "Subdistrict",
+    newEntity: "New office", newCategory: "New issue type", newSector: "New sector", save: "Save", saved: "Saved.",
+    entity: "Office", sector: "Sector", area: "Area", areaSearch: "Type to find an area", nameEn: "Name (English)", nameAr: "Name (Arabic)",
+    officeEmail: "Office email (gets every task)", phone: "Phone", active: "Active", members: "People", noMembers: "Nobody yet. Add the people who will handle tasks.",
+    memberEmail: "Email they use in the app", role_admin: "Admin", role_staff: "Staff", add: "Add", remove: "Remove", added: "Added.", removed: "Removed.",
+    adminHint: "Admins can add people and create the offices below this one.",
+    openCount: (n) => `${n} open`, overdueCount: (n) => `${n} overdue`, inactive: "Off",
+    catId: "ID (letters and _ only)", icon: "Icon (emoji)", color: "Color", severity: "Default severity", sortOrder: "Order",
+    catSectors: "Which sectors handle it", aiLabels: "AI words (comma-separated)", aiHint: "Words the phone's image AI may detect for this issue, e.g. water, pipe, leak.",
+    sectorId: "ID (letters and _ only)",
+    settingsTitle: "Settings", restrict: "Accept reports only inside Syria", restrictHint: "Turn off only for testing outside Syria.",
+    dupRadius: "Duplicate check radius (metres)", defaultSector: "Sector for issue types without one",
+    deadlines: "Deadlines before escalation", level: "Level", verifyDays: "Days to verify", fixDays: "Days to fix",
+    reroute: "Re-route open tasks", rerouteHint: "After adding or switching off offices, send open tasks to the closest active one.", rerouted: (n) => `${n} tasks re-routed.`,
   },
   ar: {
-    moderation: "الإشراف", signOut: "تسجيل الخروج", signInTitle: "الدخول إلى لوحة التحكم",
-    signInBody: "سنرسل إلى بريدك رمزًا من 6 أرقام. لا يمكن فتح لوحة التحكم إلا بحساب مشرف أو جهة محلية.",
+    dashboard: "لوحة التحكم", signOut: "تسجيل الخروج", signInTitle: "الدخول إلى لوحة التحكم", signInBody: "سنرسل إلى بريدك رمزًا من 6 أرقام.",
     email: "البريد الإلكتروني", code: "الرمز المكوّن من 6 أرقام", changeEmail: "استخدام بريد آخر", sendCode: "إرسال الرمز", signIn: "دخول",
     codeSent: "تم إرسال الرمز. تحقق من بريدك.", badCode: "الرمز غير صحيح. تحقق منه أو اطلب رمزًا جديدًا.",
     noAccount: "لا يوجد حساب بهذا البريد. سجّل الدخول في التطبيق مرة أولًا.",
     noAccessTitle: "لا توجد صلاحية دخول", accountId: "معرّف الحساب",
-    noAccessBody: "هذا الحساب ليس مشرفًا ولا عضوًا في جهة محلية. اطلب من المسؤول إضافته ثم سجّل الدخول من جديد.",
-    search: "بحث", searchPlaceholder: "ابحث في العنوان أو النص", category: "الفئة", allCategories: "كل الفئات",
-    governorate: "المحافظة", allGovernorates: "كل المحافظات",
-    v_mine: "المُحالة إلينا", v_review: "بانتظار المراجعة", v_new: "جديدة", v_verified: "تم التحقق", v_progress: "جارٍ الإصلاح",
-    v_overdue: "متأخرة", v_central: "لدى الفريق المركزي", v_flagged: "مُبلّغ عنها", v_resolved: "تم الإصلاح", v_rejected: "مرفوضة",
-    v_all: "كل البلاغات", v_admin: "المناطق والجهات",
-    scopeStaff: "كل البلاد", scopeAs: "مسجّل باسم",
-    help: "الاختصارات: J / K التالي والسابق، A موافقة أو تحقق، R رفض، E تصعيد.",
-    s_submitted: "جديد", s_verified: "تم التحقق", s_in_progress: "جارٍ الإصلاح", s_resolved: "تم الإصلاح", s_rejected: "مرفوض", s_duplicate: "مكرر",
-    inReview: "بانتظار المراجعة", overdue: "متأخر", flags: (n) => `${n} إبلاغ`, votes: (n) => `${n} تأكيد`,
-    emptyTitle: "لا شيء هنا", emptyBody: "لا توجد بلاغات في هذه القائمة.", pick: "اختر بلاغًا لعرض تفاصيله.",
-    back: "العودة إلى القائمة", whyReview: "لماذا ينتظر المراجعة", spamChecks: "نتائج فحص الإزعاج عند الإرسال",
-    r_no_device_location: "لم يشارك الهاتف موقعه عند إرسال البلاغ.",
-    r_far_from_device: (m) => `الدبوس على بُعد ${formatDistance(m)} من موقع الهاتف.`,
-    r_mock_location: "كان الهاتف يستخدم تطبيق موقع مزيف.",
-    r_impossible_travel: "تغيّر موقع المُبلِّغ أسرع مما يمكن لأي شخص التنقل.",
-    r_flagged: "أبلغ عنه بعض المستخدمين.",
-    decide: "القرار", changeStatus: "تغيير الحالة",
-    approve: "موافقة ونشر", reject: "رفض", verify: "تحقق", start: "جارٍ الإصلاح", resolve: "تم الإصلاح",
-    duplicate: "مكرر", ban: "حظر المُبلِّغ", unban: "إلغاء الحظر", reopen: "إعادة فتح",
-    escalate: "تصعيد", assign: "إحالة إلى…",
-    details: "التفاصيل", location: "الموقع", reporter: "المُبلِّغ", history: "سجل الحالة", flagsTitle: "الإبلاغات",
-    responsibility: "الجهة المسؤولة", f_area: "المنطقة", f_responsible: "المسؤول", f_deadline: "المهلة", f_escalations: "مرات التصعيد",
-    central: "الفريق المركزي (المشرفون)", noArea: "خارج المناطق المحددة", movedTo: "أُحيل إلى", movedFrom: "من",
-    a_created: "إحالة", a_overdue: "تصعيد: انتهت المهلة", a_manual: "تصعيد يدوي", a_reassigned: "إعادة إحالة",
-    assignments: "من تولّى البلاغ",
-    f_category: "الفئة", f_severity: "الخطورة", f_reported: "تاريخ البلاغ", f_address: "العنوان", f_coords: "الإحداثيات",
-    f_distance: "المسافة بين الدبوس والهاتف", f_name: "الاسم", f_hidden: "مخفي عن العامة", f_banned: "محظور", f_id: "المعرّف",
-    anonymous: "بدون اسم", yes: "نعم", no: "لا", copy: "نسخ", copied: "تم النسخ",
-    sev_low: "منخفضة", sev_medium: "متوسطة", sev_high: "عالية",
+    noAccessBody: "هذا الحساب ليس من الفريق المركزي ولا من جهة حكومية. اطلب من مسؤول جهتك إضافته.",
+    search: "ابحث في العنوان أو النص", allCategories: "كل أنواع المشاكل", allGovernorates: "كل المحافظات", allSectors: "كل القطاعات",
+    sec_work: "العمل", sec_central: "الفريق المركزي", sec_setup: "الإعداد",
+    v_new: "جديدة لنا", v_verified: "تم التحقق", v_progress: "جارٍ الإصلاح", v_overdue: "متأخرة", v_below: "لدى الوحدات التابعة",
+    v_done: "منتهية", v_all: "كل المهام", v_review: "بانتظار المراجعة", v_central: "قائمة الفريق المركزي", v_open: "المهام المفتوحة",
+    v_flagged: "مُبلّغ عنها", v_reports: "كل البلاغات", v_entities: "الجهات", v_offices: "مكاتبي", v_categories: "أنواع المشاكل",
+    v_sectors: "القطاعات", v_settings: "الإعدادات",
+    scopeCentral: "الفريق المركزي", help: "الاختصارات: J / K التالي والسابق، A تحقق أو موافقة، R رفض، E تصعيد.",
+    st_new: "جديدة", st_verified: "تم التحقق", st_in_progress: "جارٍ الإصلاح", st_resolved: "تم الإصلاح", st_rejected: "مرفوضة", st_transferred: "محوّلة",
+    rs_submitted: "جديد", rs_verified: "تم التحقق", rs_in_progress: "جارٍ الإصلاح", rs_resolved: "تم الإصلاح", rs_rejected: "مرفوض", rs_duplicate: "مكرر",
+    inReview: "بانتظار المراجعة", overdue: "متأخرة", flags: (n) => `${n} إبلاغ`, votes: (n) => `${n} متأثر`,
+    emptyTitle: "لا شيء هنا", emptyBody: "لا يوجد ما يطابق هذه القائمة.", pick: "اختر عنصرًا لعرض تفاصيله.", back: "العودة إلى القائمة",
+    whyReview: "لماذا ينتظر المراجعة", spamChecks: "نتائج فحص الإزعاج عند الإرسال",
+    r_no_device_location: "لم يشارك الهاتف موقعه.", r_far_from_device: (m) => `الدبوس على بُعد ${fmtDistance(m)} من موقع الهاتف.`,
+    r_mock_location: "كان الهاتف يستخدم تطبيق موقع مزيف.", r_impossible_travel: "تغيّر موقع المُبلِّغ أسرع مما يمكن التنقل.", r_flagged: "أبلغ عنه بعض المستخدمين.",
+    changeStatus: "تحديث هذه المهمة", decide: "القرار",
+    verify: "تحقق", start: "جارٍ الإصلاح", resolve: "تم الإصلاح", reject: "رفض", reopen: "إعادة فتح", escalate: "تصعيد", transfer: "قطاع خاطئ…", assign: "إحالة…",
+    approve: "موافقة ونشر", resolveAll: "إغلاق البلاغ كمُصلَح", rejectAll: "رفض البلاغ", duplicate: "مكرر…", ban: "حظر المُبلِّغ", unban: "إلغاء الحظر",
+    thisTask: "هذه المهمة", f_sector: "القطاع", f_entity: "المسؤول", f_deadline: "المهلة", f_escalations: "مرات التصعيد", f_area: "المنطقة",
+    central: "الفريق المركزي", otherTasks: "كل القطاعات في هذا البلاغ", taskHistory: "سجل المهمة", statusHistory: "ما يراه المواطن", flagsTitle: "الإبلاغات",
+    location: "الموقع", details: "التفاصيل", f_reported: "تاريخ البلاغ", f_severity: "الخطورة", reporter: "المُبلِّغ", anonymous: "بدون اسم", f_hidden: "مخفي عن العامة",
+    f_banned: "محظور", f_id: "المعرّف", f_address: "العنوان", f_coords: "الإحداثيات", openMaps: "فتح في الخرائط", copy: "نسخ", copied: "تم النسخ", yes: "نعم", no: "لا",
+    sev_low: "منخفضة", sev_medium: "متوسطة", sev_high: "عالية", noHistory: "لا توجد تغييرات بعد.", noFlags: "لا توجد إبلاغات.", tasksTitle: "المهام",
     fr_spam: "إزعاج", fr_inappropriate: "غير لائق", fr_wrong_location: "موقع خاطئ", fr_already_fixed: "تم إصلاحه",
-    noFlags: "لا توجد إبلاغات.", noHistory: "لا توجد تغييرات بعد.", openMaps: "فتح في الخرائط",
-    cancel: "إلغاء", duplicateOf: "معرّف البلاغ الأصلي", assignTo: "إحالة إلى",
-    noteLabel: "ملاحظة (اختيارية، تظهر في سجل البلاغ)", reasonLabel: "السبب (اختياري، لا يظهر للمُبلِّغ)",
-    escalateNoteLabel: "السبب (اختياري، يُرسل إلى الجهة التالية)",
-    d_reject: "رفض هذا البلاغ؟", d_reject_body: "سيختفي من الخريطة. سيظل المُبلِّغ يراه بحالة مرفوض.",
-    d_status: (s) => `تغيير الحالة إلى «${s}»؟`, d_status_body: "سيصل إشعار إلى المُبلِّغ وكل من أكد البلاغ.",
-    d_dup: "تحديده كمكرر؟", d_dup_body: "الصق معرّف البلاغ الأصلي. سيُخفى هذا البلاغ ويشير إليه.",
+    ev_created: "إحالة", ev_overdue: "تصعيد: انتهت المهلة", ev_escalated: "تصعيد يدوي", ev_assigned: "إحالة يدوية", ev_transferred: "تحويل إلى قطاع آخر", ev_status: "الحالة",
+    to: "إلى",
+    cancel: "إلغاء", noteLabel: "ملاحظة (اختيارية، تظهر للمواطن)", escalateNote: "السبب (اختياري، يُرسل إلى المكتب التالي)", reasonLabel: "السبب (اختياري، داخلي)",
+    d_status: (s) => `تغيير حالة المهمة إلى «${s}»؟`, d_status_body: "يصل إشعار إلى المواطن وكل المتأثرين عند تغيّر حالة البلاغ.",
+    d_escalate: "تصعيد إلى المستوى الأعلى؟", d_escalate_body: "تنتقل المهمة للأعلى في القطاع نفسه (وحدة ← مديرية ← وزارة ← الفريق المركزي) ويصلها بريد إلكتروني.",
+    d_transfer: "تحويل إلى قطاع آخر؟", d_transfer_body: "تُغلق هذه المهمة كمحوّلة وتُنشأ مهمة جديدة للقطاع الصحيح.", pickSector: "القطاع",
+    d_assign: "إحالة إلى مكتب؟", d_assign_body: "اختر مكتب هذا القطاع الذي سيتولاها.", pickEntity: "المكتب",
+    d_reject_all: "رفض البلاغ بالكامل؟", d_reject_all_body: "سيختفي من الخريطة وتُغلق كل مهامه المفتوحة.",
+    d_resolve_all: "إغلاق البلاغ كمُصلَح؟", d_resolve_all_body: "تُغلق كل المهام المفتوحة كمُصلَحة.",
+    d_dup: "تحديده كمكرر؟", d_dup_body: "الصق معرّف البلاغ الأصلي. تُغلق مهامه المفتوحة.", dupId: "معرّف البلاغ الأصلي",
     d_ban: "حظر هذا المُبلِّغ؟", d_ban_body: "لن يتمكن من إرسال بلاغات، وسيتم رفض كل بلاغاته.",
-    d_unban: "إلغاء حظر هذا المُبلِّغ؟", d_unban_body: "سيتمكن من الإبلاغ مجددًا. تبقى البلاغات المرفوضة مرفوضة.",
-    d_escalate: "تصعيد إلى الجهة الأعلى؟", d_escalate_body: "ينتقل البلاغ مستوى واحدًا للأعلى (ناحية ← منطقة ← محافظة ← الفريق المركزي) ويصلها بريد إلكتروني.",
-    d_assign: "إحالة البلاغ إلى جهة؟", d_assign_body: "اختر الجهة التي ستتولاه. سيصلها بريد إلكتروني ومهلة جديدة.",
-    done_approve: "تم النشر.", done_reject: "تم الرفض.", done_status: "تم تحديث الحالة.", done_ban: (n) => `تم الحظر. أُزيل ${n} بلاغ.`, done_unban: "تم إلغاء الحظر.",
-    done_escalate: (name) => `تم التصعيد إلى ${name}.`, done_assign: "تمت الإحالة.",
-    e_forbidden: "لا يملك حسابك هذه الصلاحية.", e_network: "تعذّر الوصول إلى الخادم. تحقق من الاتصال.",
-    e_dup: "أدخل معرّف البلاغ الأصلي.", e_staff: "لا يمكنك حظر مشرف آخر.", e_generic: "حدث خطأ. حاول مرة أخرى.",
-    e_central: "البلاغ لدى الفريق المركزي بالفعل.", e_noauth: "لا توجد جهة فعّالة في هذه المنطقة.",
+    d_unban: "إلغاء حظر هذا المُبلِّغ؟", d_unban_body: "سيتمكن من الإبلاغ مجددًا.",
+    done: "تم.", e_forbidden: "لا يملك حسابك هذه الصلاحية.", e_network: "تعذّر الوصول إلى الخادم.", e_generic: "حدث خطأ. حاول مرة أخرى.",
+    e_central: "المهمة لدى الفريق المركزي بالفعل.", e_no_entity: "اختر مكتبًا فعّالًا من هذا القطاع.", e_same_sector: "هذا هو القطاع نفسه.",
     e_user: "لا يوجد حساب بهذا البريد. يجب أن يسجّل الدخول في التطبيق مرة أولًا.", e_deadline: "يجب ألا تقل المهلة عن يوم واحد.",
-    lv1: "محافظة", lv2: "منطقة", lv3: "ناحية",
-    settings: "الإعدادات", restrictLabel: "قبول البلاغات داخل سوريا فقط",
-    restrictHelp: "أوقفه فقط للاختبار خارج سوريا. البلاغات خارج المناطق المحددة تذهب إلى الفريق المركزي.",
-    deadlines: "المهل قبل التصعيد", level: "المستوى", verifyDays: "أيام للتحقق", fixDays: "أيام للإصلاح", save: "حفظ",
-    areasTitle: "المناطق", areaSearch: "ابحث في المناطق", allLevels: "كل المستويات", hasAuthority: "لها جهة", noAuthority: "بدون جهة",
-    pickArea: "اختر منطقة لإعداد الجهة المسؤولة عنها.", authority: "الجهة",
-    nameEn: "الاسم (بالإنجليزية)", nameAr: "الاسم (بالعربية)", contactEmail: "بريد المكتب (يستلم كل البلاغات)", phone: "الهاتف", activeLabel: "فعّالة",
-    members: "الأعضاء (حسابات لوحة التحكم)", noMembers: "لا يوجد أعضاء بعد. أضف من سيتولى البلاغات هنا.",
-    addMember: "إضافة", memberEmail: "بريد شخص سجّل الدخول في التطبيق", remove: "إزالة",
-    reroute: "إعادة توجيه البلاغات المفتوحة", rerouteHelp: "بعد إضافة جهات أو إيقافها، أرسل البلاغات المفتوحة إلى أقرب جهة فعّالة.",
-    saved: "تم الحفظ.", rerouted: (n) => `أُعيد توجيه ${n} بلاغ.`, added: "تمت الإضافة.", removed: "تمت الإزالة.",
-    openCount: (n) => `${n} مفتوح`, overdueCount: (n) => `${n} متأخر`,
+    e_dup: "أدخل معرّف البلاغ الأصلي.", e_staff: "لا يمكنك حظر مشرف آخر.",
+    lv0: "وزارة (كل البلاد)", lv1: "محافظة", lv2: "منطقة", lv3: "ناحية",
+    newEntity: "مكتب جديد", newCategory: "نوع مشكلة جديد", newSector: "قطاع جديد", save: "حفظ", saved: "تم الحفظ.",
+    entity: "المكتب", sector: "القطاع", area: "المنطقة", areaSearch: "اكتب للبحث عن منطقة", nameEn: "الاسم (بالإنجليزية)", nameAr: "الاسم (بالعربية)",
+    officeEmail: "بريد المكتب (يستلم كل المهام)", phone: "الهاتف", active: "فعّال", members: "الأشخاص", noMembers: "لا أحد بعد. أضف من سيتولى المهام.",
+    memberEmail: "البريد الذي يستخدمه في التطبيق", role_admin: "مسؤول", role_staff: "موظف", add: "إضافة", remove: "إزالة", added: "تمت الإضافة.", removed: "تمت الإزالة.",
+    adminHint: "يستطيع المسؤولون إضافة الأشخاص وإنشاء المكاتب التابعة لهذا المكتب.",
+    openCount: (n) => `${n} مفتوحة`, overdueCount: (n) => `${n} متأخرة`, inactive: "متوقف",
+    catId: "المعرّف (أحرف إنجليزية و _ فقط)", icon: "الرمز (إيموجي)", color: "اللون", severity: "الخطورة الافتراضية", sortOrder: "الترتيب",
+    catSectors: "القطاعات المسؤولة عنه", aiLabels: "كلمات الذكاء الاصطناعي (مفصولة بفواصل)", aiHint: "كلمات قد يكتشفها الذكاء الاصطناعي في الصورة لهذا النوع، مثل water, pipe, leak.",
+    sectorId: "المعرّف (أحرف إنجليزية و _ فقط)",
+    settingsTitle: "الإعدادات", restrict: "قبول البلاغات داخل سوريا فقط", restrictHint: "أوقفه فقط للاختبار خارج سوريا.",
+    dupRadius: "نطاق فحص التكرار (بالأمتار)", defaultSector: "القطاع للأنواع التي ليس لها قطاع",
+    deadlines: "المهل قبل التصعيد", level: "المستوى", verifyDays: "أيام للتحقق", fixDays: "أيام للإصلاح",
+    reroute: "إعادة توجيه المهام المفتوحة", rerouteHint: "بعد إضافة مكاتب أو إيقافها، أرسل المهام المفتوحة إلى أقرب مكتب فعّال.", rerouted: (n) => `أُعيد توجيه ${n} مهمة.`,
   },
 };
 
-let lang = readPref("lang") || (navigator.language?.startsWith("ar") ? "ar" : "en");
+let lang = readPref("lang") || "ar";
 const t = (key, ...args) => { const v = T[lang][key] ?? T.en[key] ?? key; return typeof v === "function" ? v(...args) : v; };
-
 function readPref(key) { try { return localStorage.getItem(`rm-admin-${key}`); } catch { return null; } }
 function writePref(key, value) { try { localStorage.setItem(`rm-admin-${key}`, value); } catch { /* private mode */ } }
 
@@ -446,13 +413,12 @@ function applyLanguage() {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   document.querySelectorAll("[data-t]").forEach((el) => { el.textContent = t(el.dataset.t); });
-  document.querySelectorAll("[data-tp]").forEach((el) => { el.placeholder = t(el.dataset.tp); });
-  const toggle = document.getElementById("lang");
+  const toggle = $("lang");
   toggle.textContent = lang === "ar" ? "English" : "العربية";
   toggle.lang = lang === "ar" ? "en" : "ar";
 }
 
-// ---------------------------------------------------------------- Small DOM helpers (user text only via textContent)
+// ---------------------------------------------------------------- Helpers (user text only via textContent)
 function h(tag, attrs = {}, ...children) {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -463,20 +429,18 @@ function h(tag, attrs = {}, ...children) {
     else if (k === "checked") el.checked = Boolean(v);
     else el.setAttribute(k, v === true ? "" : v);
   }
-  for (const c of children.flat()) if (c != null && c !== false) el.append(c instanceof Node ? c : String(c));
+  for (const c of children.flat(Infinity)) if (c != null && c !== false) el.append(c instanceof Node ? c : String(c));
   return el;
 }
 const $ = (id) => document.getElementById(id);
 const locale = () => (lang === "ar" ? "ar-SY" : "en-GB");
-
-function formatDistance(m) {
+const nm = (o) => (o ? (lang === "ar" ? o.name_ar : o.name_en) : "");
+function fmtDistance(m) {
   if (m == null) return "";
   const n = new Intl.NumberFormat(locale(), { maximumFractionDigits: m >= 1000 ? 1 : 0 });
   return m >= 1000 ? `${n.format(m / 1000)} km` : `${n.format(m)} m`;
 }
-function formatDate(iso) {
-  return new Intl.DateTimeFormat(locale(), { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
-}
+const fmtDate = (iso) => new Intl.DateTimeFormat(locale(), { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
 function timeAgo(iso) {
   const rtf = new Intl.RelativeTimeFormat(lang === "ar" ? "ar" : "en", { numeric: "auto" });
   const s = (new Date(iso) - Date.now()) / 1000;
@@ -485,7 +449,7 @@ function timeAgo(iso) {
   }
   return rtf.format(Math.round(s), "second");
 }
-const isOverdue = (r) => r.due_at && new Date(r.due_at) < new Date() && OPEN.includes(r.status);
+const isOverdue = (task) => task.due_at && new Date(task.due_at) < new Date() && OPEN.includes(task.status);
 
 let toastTimer;
 function toast(message, bad = false) {
@@ -498,68 +462,88 @@ function toast(message, bad = false) {
 }
 function errorText(error) {
   const msg = `${error?.message || ""} ${error?.code || ""}`;
-  if (msg.includes("forbidden") || msg.includes("42501")) return t("e_forbidden");
-  if (msg.includes("duplicate_of_required")) return t("e_dup");
-  if (msg.includes("cannot_ban_staff")) return t("e_staff");
-  if (msg.includes("already_central")) return t("e_central");
-  if (msg.includes("no_authority")) return t("e_noauth");
-  if (msg.includes("user_not_found")) return t("e_user");
-  if (msg.includes("invalid_deadline")) return t("e_deadline");
-  if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) return t("e_network");
+  const map = [["forbidden", "e_forbidden"], ["42501", "e_forbidden"], ["already_central", "e_central"], ["no_entity", "e_no_entity"],
+    ["same_sector", "e_same_sector"], ["user_not_found", "e_user"], ["invalid_deadline", "e_deadline"], ["duplicate_of_required", "e_dup"],
+    ["cannot_ban_staff", "e_staff"], ["Failed to fetch", "e_network"], ["NetworkError", "e_network"]];
+  for (const [needle, key] of map) if (msg.includes(needle)) return t(key);
   return t("e_generic");
 }
 
 // ---------------------------------------------------------------- State
 const state = {
-  user: null, me: { role: null, authorities: [] }, areas: new Map(), categories: new Map(), officeNames: new Map(),
-  view: readPref("view") || null, reports: [], selectedId: null, counts: {},
-  search: "", category: "", governorate: "", detailMap: null,
-  // Admin screen
-  adminAreas: [], authorities: new Map(), adminSearch: "", adminLevel: "", adminSelected: null, rules: [], settings: null,
+  user: null, me: { role: null, memberships: [] },
+  areas: new Map(), categories: new Map(), sectors: new Map(), catSectors: new Map(), entities: new Map(),
+  view: readPref("view"), items: [], selectedId: null, counts: {},
+  filter: { search: "", category: "", governorate: "", sector: "" },
+  detailMap: null, config: { settings: null, rules: [], directory: [], search: "", sector: "" },
 };
 const isStaff = () => ["moderator", "admin"].includes(state.me.role);
 const isAdmin = () => state.me.role === "admin";
-const myAreas = () => state.me.authorities.map((a) => a.area_pcode);
-const areaName = (pcode) => { const a = state.areas.get(pcode); return a ? (lang === "ar" ? a.name_ar : a.name_en) : pcode; };
-const authorityName = (r) => r.assigned_pcode ? ((lang === "ar" ? r.assigned_ar : r.assigned_en) || areaName(r.assigned_pcode)) : t("central");
+const myEntityIds = () => state.me.memberships.map((m) => m.entity_id);
+const adminMemberships = () => state.me.memberships.filter((m) => m.role === "admin");
+const canManageOffices = () => isAdmin() || adminMemberships().length > 0;
+const areaName = (pcode) => nm(state.areas.get(pcode)) || pcode;
+const entityName = (id) => (id ? nm(state.entities.get(id)) || "—" : t("central"));
+const sectorLabel = (id) => { const s = state.sectors.get(id); return s ? `${s.icon} ${nm(s)}` : id; };
+const categoryLabel = (id) => nm(state.categories.get(id)) || id;
+const categoryIcon = (id) => state.categories.get(id)?.icon || "📍";
+function isUnder(pcode, ancestor) {
+  for (let p = pcode; p; p = state.areas.get(p)?.parent_pcode) if (p === ancestor) return true;
+  return false;
+}
+const placeOf = (r) => [r.subdistrict_pcode, r.governorate_pcode].filter(Boolean).map(areaName).join(lang === "ar" ? "، " : ", ") || r.address || "—";
 
-// Lists in the side bar. Each one adds its filter to the staff_reports query.
+// Lists in the side bar.
 function views() {
-  const open = (q) => q.eq("needs_review", false).in("status", OPEN);
+  const mine = myEntityIds();
   const list = [];
-  if (!isStaff()) list.push({ id: "mine", icon: "📥", key: "v_mine", hot: true, filter: (q) => open(q).in("assigned_pcode", myAreas()) });
-  if (isStaff()) list.push({ id: "review", icon: "⏳", key: "v_review", hot: true, filter: (q) => q.eq("needs_review", true).order("created_at", { ascending: true }) });
-  list.push(
-    { id: "new", icon: "🆕", key: "v_new", hot: isStaff(), filter: (q) => q.eq("needs_review", false).eq("status", "submitted") },
-    { id: "verified", icon: "✅", key: "v_verified", filter: (q) => q.eq("needs_review", false).eq("status", "verified") },
-    { id: "progress", icon: "🛠️", key: "v_progress", filter: (q) => q.eq("needs_review", false).eq("status", "in_progress") },
-    { id: "overdue", icon: "⏰", key: "v_overdue", alarm: true, filter: (q) => open(q).lt("due_at", new Date().toISOString()).order("due_at", { ascending: true }) },
-  );
-  if (isStaff()) {
+  if (state.me.memberships.length) {
     list.push(
-      { id: "central", icon: "🏛️", key: "v_central", hot: true, filter: (q) => open(q).is("assigned_pcode", null) },
-      { id: "flagged", icon: "🚩", key: "v_flagged", filter: (q) => q.gt("flag_count", 0).not("status", "in", "(rejected,duplicate)") },
+      { section: "sec_work" },
+      { id: "mine_new", kind: "tasks", icon: "📥", key: "v_new", hot: true, filter: (q) => q.eq("status", "new").in("entity_id", mine) },
+      { id: "mine_verified", kind: "tasks", icon: "✅", key: "v_verified", filter: (q) => q.eq("status", "verified").in("entity_id", mine) },
+      { id: "mine_progress", kind: "tasks", icon: "🛠️", key: "v_progress", filter: (q) => q.eq("status", "in_progress").in("entity_id", mine) },
+      { id: "overdue", kind: "tasks", icon: "⏰", key: "v_overdue", alarm: true, filter: (q) => q.in("status", OPEN).lt("due_at", new Date().toISOString()).order("due_at", { ascending: true }) },
+      { id: "below", kind: "tasks", icon: "🏢", key: "v_below", filter: (q) => q.in("status", OPEN).not("entity_id", "in", `(${mine.join(",")})`) },
+      { id: "done", kind: "tasks", icon: "🎉", key: "v_done", count: false, filter: (q) => q.in("status", DONE) },
+      { id: "all", kind: "tasks", icon: "🗂️", key: "v_all", count: false, filter: (q) => q },
     );
   }
-  list.push(
-    { id: "resolved", icon: "🎉", key: "v_resolved", filter: (q) => q.eq("status", "resolved") },
-    { id: "rejected", icon: "🚫", key: "v_rejected", filter: (q) => q.in("status", ["rejected", "duplicate"]) },
-    { id: "all", icon: "🗂️", key: "v_all", filter: (q) => q },
-  );
+  if (isStaff()) {
+    list.push(
+      { section: "sec_central" },
+      { id: "review", kind: "reports", icon: "⏳", key: "v_review", hot: true, filter: (q) => q.eq("needs_review", true).order("created_at", { ascending: true }) },
+      { id: "central", kind: "tasks", icon: "🏛️", key: "v_central", hot: true, filter: (q) => q.is("entity_id", null).in("status", OPEN) },
+      { id: "open", kind: "tasks", icon: "📋", key: "v_open", filter: (q) => q.in("status", OPEN) },
+    );
+    if (!state.me.memberships.length) list.push({ id: "overdue", kind: "tasks", icon: "⏰", key: "v_overdue", alarm: true, filter: (q) => q.in("status", OPEN).lt("due_at", new Date().toISOString()).order("due_at", { ascending: true }) });
+    list.push(
+      { id: "flagged", kind: "reports", icon: "🚩", key: "v_flagged", filter: (q) => q.gt("flag_count", 0).not("status", "in", "(rejected,duplicate)") },
+      { id: "reports", kind: "reports", icon: "🗂️", key: "v_reports", count: false, filter: (q) => q },
+    );
+  }
+  if (canManageOffices()) {
+    list.push({ section: "sec_setup" }, { id: "entities", kind: "config", icon: "🏢", key: isAdmin() ? "v_entities" : "v_offices" });
+  }
+  if (isAdmin()) {
+    list.push(
+      { id: "categories", kind: "config", icon: "🏷️", key: "v_categories" },
+      { id: "sectors", kind: "config", icon: "🧩", key: "v_sectors" },
+      { id: "settings", kind: "config", icon: "⚙️", key: "v_settings" },
+    );
+  }
   return list;
 }
-const currentView = () => views().find((v) => v.id === state.view) || views()[0];
+const listViews = () => views().filter((v) => v.id);
+const currentView = () => listViews().find((v) => v.id === state.view) || listViews()[0];
 
 // ---------------------------------------------------------------- Auth
 let pendingEmail = "";
-
 async function start() {
   applyLanguage();
   const { data } = await supabase.auth.getSession();
   await onSession(data.session);
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (event === "SIGNED_IN" || event === "SIGNED_OUT") onSession(session);
-  });
+  supabase.auth.onAuthStateChange((event, session) => { if (event === "SIGNED_IN" || event === "SIGNED_OUT") onSession(session); });
   window.addEventListener("hashchange", openFromHash);
 }
 
@@ -568,29 +552,22 @@ async function onSession(session) {
   $("signout").hidden = !state.user;
   $("who").textContent = state.user?.email ?? "";
   for (const id of ["signin", "noaccess", "app"]) $(id).hidden = true;
-  if (!state.user) { showSignIn(); return; }
+  if (!state.user) { $("signin").hidden = false; setSignInStep(pendingEmail ? "code" : "email"); return; }
 
   const { data: me } = await supabase.rpc("dashboard_me");
-  state.me = { role: me?.role ?? null, authorities: me?.authorities ?? [] };
-  if (!isStaff() && !state.me.authorities.length) {
+  state.me = { role: me?.role ?? null, memberships: me?.memberships ?? [] };
+  if (!isStaff() && !state.me.memberships.length) {
     $("noaccess-id").textContent = state.user.id;
     $("noaccess").hidden = false;
     return;
   }
-  if (!state.view || (state.view === "admin" && !isAdmin()) || (state.view !== "admin" && !views().some((v) => v.id === state.view))) {
-    state.view = views()[0].id;
-  }
+  await loadReference();
+  if (!listViews().some((v) => v.id === state.view)) state.view = listViews()[0].id;
   $("app").hidden = false;
-  await Promise.all([loadCategories(), loadAreas()]);
-  renderViews();
-  if (state.view === "admin") await showAdmin(); else await refresh();
+  await showView();
   openFromHash();
 }
 
-function showSignIn() {
-  $("signin").hidden = false;
-  setSignInStep(pendingEmail ? "code" : "email");
-}
 function setSignInStep(step) {
   $("email-field").hidden = step !== "email";
   $("code-field").hidden = step !== "code";
@@ -598,10 +575,7 @@ function setSignInStep(step) {
   $("signin-submit").dataset.t = step === "email" ? "sendCode" : "signIn";
   (step === "email" ? $("email") : $("code")).focus();
 }
-function signInError(message) {
-  $("signin-error").textContent = message || "";
-  $("signin-error").hidden = !message;
-}
+function signInError(message) { $("signin-error").textContent = message || ""; $("signin-error").hidden = !message; }
 
 $("signin-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -611,7 +585,6 @@ $("signin-form").addEventListener("submit", async (event) => {
   try {
     if (!pendingEmail) {
       const email = $("email").value.trim();
-      // The dashboard never creates accounts; moderators and authority members sign in to the app first.
       const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
       if (error) { signInError(/signups not allowed|not found|422/i.test(error.message) ? t("noAccount") : errorText(error)); return; }
       pendingEmail = email;
@@ -623,113 +596,47 @@ $("signin-form").addEventListener("submit", async (event) => {
       pendingEmail = "";
       $("code").value = "";
     }
-  } finally {
-    button.disabled = false;
-  }
+  } finally { button.disabled = false; }
 });
 $("change-email").addEventListener("click", () => { pendingEmail = ""; signInError(""); setSignInStep("email"); });
-$("signout").addEventListener("click", async () => { await supabase.auth.signOut(); });
-$("lang").addEventListener("click", () => {
+$("signout").addEventListener("click", () => supabase.auth.signOut());
+$("lang").addEventListener("click", async () => {
   lang = lang === "ar" ? "en" : "ar";
   writePref("lang", lang);
   applyLanguage();
   if (!$("signin").hidden) setSignInStep(pendingEmail ? "code" : "email");
-  if (!$("app").hidden) {
-    renderFilters(); renderViews();
-    if (state.view === "admin") { renderAdminList(); renderAdminDetail(); } else { renderList(); renderDetail(); }
-  }
+  if (!$("app").hidden) { renderViews(); renderFilters(); renderList(); renderDetail(); }
 });
 
-// ---------------------------------------------------------------- Data
-async function loadCategories() {
-  const { data } = await supabase.from("categories").select("id, name_en, name_ar, icon, color").order("sort_order");
-  state.categories = new Map((data || []).map((c) => [c.id, c]));
-}
-async function loadAreas() {
-  const [{ data }, { data: offices }] = await Promise.all([
+// ---------------------------------------------------------------- Reference data
+async function loadReference() {
+  const [areas, categories, sectors, catSectors, entities] = await Promise.all([
     supabase.from("admin_areas").select("pcode, level, parent_pcode, name_en, name_ar").order("pcode"),
-    supabase.from("authorities").select("area_pcode, name_en, name_ar"),
+    supabase.from("categories").select("id, name_en, name_ar, icon, color, default_severity, is_active, sort_order, ai_labels").order("sort_order"),
+    supabase.from("sectors").select("*").order("sort_order"),
+    supabase.from("category_sectors").select("category_id, sector_id"),
+    supabase.from("entities").select("id, sector_id, area_pcode, name_en, name_ar, is_active"),
   ]);
-  state.areas = new Map((data || []).map((a) => [a.pcode, a]));
-  state.officeNames = new Map((offices || []).map((o) => [o.area_pcode, o]));
-  renderFilters();
-}
-// The authority's name for an area ("Damascus Governorate"), or the area's name if it has no authority.
-const officeName = (pcode) => { const o = state.officeNames.get(pcode); return o ? (lang === "ar" ? o.name_ar : o.name_en) : areaName(pcode); };
-const categoryName = (id) => { const c = state.categories.get(id); return c ? (lang === "ar" ? c.name_ar : c.name_en) : id; };
-const categoryIcon = (id) => state.categories.get(id)?.icon || "📍";
-
-async function loadCounts() {
-  const results = await Promise.all(views().filter((v) => v.id !== "all").map(async (v) => {
-    const { count } = await v.filter(supabase.from("staff_reports").select("id", { count: "exact", head: true }));
-    return [v.id, count ?? 0];
-  }));
-  state.counts = Object.fromEntries(results);
-  renderViews();
+  state.areas = new Map((areas.data || []).map((a) => [a.pcode, a]));
+  state.categories = new Map((categories.data || []).map((c) => [c.id, c]));
+  state.sectors = new Map((sectors.data || []).map((s) => [s.id, s]));
+  state.catSectors = new Map();
+  for (const row of catSectors.data || []) state.catSectors.set(row.category_id, [...(state.catSectors.get(row.category_id) || []), row.sector_id]);
+  state.entities = new Map((entities.data || []).map((e) => [e.id, e]));
 }
 
-let loadToken = 0;
-async function loadReports() {
-  const token = ++loadToken;
-  let query = currentView().filter(supabase.from("staff_reports").select("*")).limit(200);
-  if (state.category) query = query.eq("category_id", state.category);
-  if (state.governorate) query = query.eq("governorate_pcode", state.governorate);
-  if (state.search) {
-    const s = state.search.replace(/[%,()]/g, " ");
-    query = query.or(`address.ilike.%${s}%,description.ilike.%${s}%`);
-  }
-  const { data, error } = await query;
-  if (token !== loadToken) return;
-  if (error) { toast(errorText(error), true); return; }
-  state.reports = data || [];
-  if (!state.reports.some((r) => r.id === state.selectedId)) state.selectedId = null;
-  renderList();
-  renderDetail();
-}
-
-async function refresh() {
-  if (state.view === "admin") { await loadAdminData(); return; }
-  await Promise.all([loadCounts(), loadReports()]);
-}
-
-// Links in authority emails: …/admin/#report=<id>
-async function openFromHash() {
-  const id = new URLSearchParams(location.hash.slice(1)).get("report");
-  if (!id || $("app").hidden) return;
-  if (!state.reports.some((r) => r.id === id)) {
-    const { data } = await supabase.from("staff_reports").select("*").eq("id", id).maybeSingle();
-    if (!data) return;
-    state.view = "all";
-    renderViews();
-    showReportsLayout();
-    state.reports = [data, ...state.reports.filter((r) => r.id !== id)];
-    renderList();
-  }
-  select(id);
-}
-
-// ---------------------------------------------------------------- Views + filters + list
+// ---------------------------------------------------------------- Views and lists
 function renderViews() {
-  const nav = $("views");
-  const scope = isStaff()
-    ? h("div", { class: "scope" }, h("strong", {}, t("scopeStaff")), state.me.role)
-    : h("div", { class: "scope" }, t("scopeAs"), h("strong", {}, state.me.authorities.map((a) => lang === "ar" ? a.name_ar : a.name_en).join(" · ")));
-  const viewButton = (v) => {
+  const scope = isStaff() && !state.me.memberships.length
+    ? h("div", { class: "scope" }, h("strong", {}, t("scopeCentral")), state.me.role)
+    : h("div", { class: "scope" }, state.me.memberships.map((m) => h("strong", {}, `${state.sectors.get(m.sector_id)?.icon ?? ""} ${nm(m)}`)));
+  $("views").replaceChildren(scope, ...views().map((v) => {
+    if (v.section) return h("div", { class: "section" }, t(v.section));
     const count = state.counts[v.id];
-    const countClass = v.alarm && count > 0 ? "count alarm" : `count${v.hot && count > 0 ? " hot" : ""}`;
-    return h("button", {
-      class: "view", type: "button", "aria-current": String(v.id === state.view),
-      onclick: () => switchView(v.id),
-    }, h("span", { "aria-hidden": "true" }, v.icon), t(v.key),
-      count != null && v.id !== "all" && v.id !== "admin" ? h("span", { class: countClass }, count) : null);
-  };
-  nav.replaceChildren(...[
-    scope,
-    ...views().map(viewButton),
-    isAdmin() ? h("div", { class: "sep" }) : null,
-    isAdmin() ? viewButton({ id: "admin", icon: "🗺️", key: "v_admin" }) : null,
-    h("p", { class: "help" }, t("help")),
-  ].filter(Boolean));
+    const cls = v.alarm && count > 0 ? "count alarm" : `count${v.hot && count > 0 ? " hot" : ""}`;
+    return h("button", { class: "view", type: "button", "aria-current": String(v.id === state.view), onclick: () => switchView(v.id) },
+      h("span", { "aria-hidden": "true" }, v.icon), t(v.key), count != null ? h("span", { class: cls }, count) : null);
+  }), h("p", { class: "help" }, t("help")));
 }
 
 async function switchView(id) {
@@ -737,53 +644,101 @@ async function switchView(id) {
   writePref("view", id);
   state.selectedId = null;
   $("app").classList.remove("showing-detail");
+  await showView();
+}
+
+async function showView() {
   renderViews();
-  if (id === "admin") await showAdmin();
-  else { showReportsLayout(); await loadReports(); }
+  renderFilters();
+  if (currentView().kind === "config") await loadConfig();
+  else await Promise.all([loadItems(), loadCounts()]);
 }
 
 function renderFilters() {
-  const cat = $("category");
-  cat.replaceChildren(h("option", { value: "" }, t("allCategories")),
-    ...[...state.categories.values()].map((c) => h("option", { value: c.id }, `${c.icon} ${lang === "ar" ? c.name_ar : c.name_en}`)));
-  cat.value = state.category;
-  const gov = $("governorate");
-  const govs = [...state.areas.values()].filter((a) => a.level === 1).sort((a, b) => areaName(a.pcode).localeCompare(areaName(b.pcode), lang));
-  gov.replaceChildren(h("option", { value: "" }, t("allGovernorates")), ...govs.map((a) => h("option", { value: a.pcode }, areaName(a.pcode))));
-  gov.value = state.governorate;
+  const v = currentView();
+  const box = $("filters");
+  if (v.kind === "config") { box.replaceChildren(...configFilters(v.id)); return; }
+  let timer;
+  const search = h("input", { class: "input wide", type: "search", placeholder: t("search"), value: state.filter.search,
+    oninput: (e) => { clearTimeout(timer); timer = setTimeout(() => { state.filter.search = e.target.value.trim(); loadItems(); }, 300); } });
+  const sel = (key, allKey, options) => {
+    const s = h("select", { class: "input", onchange: (e) => { state.filter[key] = e.target.value; loadItems(); } },
+      h("option", { value: "" }, t(allKey)), options);
+    s.value = state.filter[key];
+    return s;
+  };
+  const govs = [...state.areas.values()].filter((a) => a.level === 1).sort((a, b) => nm(a).localeCompare(nm(b), lang));
+  box.replaceChildren(...[
+    search,
+    sel("governorate", "allGovernorates", govs.map((a) => h("option", { value: a.pcode }, nm(a)))),
+    sel("category", "allCategories", [...state.categories.values()].map((c) => h("option", { value: c.id }, `${c.icon} ${nm(c)}`))),
+    isStaff() ? sel("sector", "allSectors", [...state.sectors.values()].map((s) => h("option", { value: s.id }, `${s.icon} ${nm(s)}`))) : null,
+  ].filter(Boolean));
 }
 
-function statusChip(report) {
-  if (report.needs_review) return h("span", { class: "chip review" }, t("inReview"));
-  return h("span", { class: `chip ${report.status}` }, t(`s_${report.status}`));
+function applyFilters(query, kind) {
+  const f = state.filter;
+  if (f.category) query = query.eq("category_id", f.category);
+  if (f.governorate) query = query.eq("governorate_pcode", f.governorate);
+  if (f.sector && kind === "tasks") query = query.eq("sector_id", f.sector);
+  if (f.search) { const s = f.search.replace(/[%,()]/g, " "); query = query.or(`address.ilike.%${s}%,description.ilike.%${s}%`); }
+  return query;
 }
-const placeLine = (r) => r.subdistrict_pcode
-  ? [lang === "ar" ? r.subdistrict_ar : r.subdistrict_en, lang === "ar" ? r.governorate_ar : r.governorate_en].filter(Boolean).join(lang === "ar" ? "، " : ", ")
-  : (r.address || "—");
+
+let loadToken = 0;
+async function loadItems() {
+  const v = currentView();
+  const token = ++loadToken;
+  const table = v.kind === "tasks" ? "staff_tasks" : "staff_reports";
+  const { data, error } = await applyFilters(v.filter(supabase.from(table).select("*")), v.kind).limit(200);
+  if (token !== loadToken) return;
+  if (error) { toast(errorText(error), true); return; }
+  state.items = data || [];
+  if (!state.items.some((x) => x.id === state.selectedId)) state.selectedId = null;
+  renderList();
+  renderDetail();
+}
+
+async function loadCounts() {
+  const counted = listViews().filter((v) => v.kind !== "config" && v.count !== false);
+  const results = await Promise.all(counted.map(async (v) => {
+    const table = v.kind === "tasks" ? "staff_tasks" : "staff_reports";
+    const { count } = await v.filter(supabase.from(table).select("id", { count: "exact", head: true }));
+    return [v.id, count ?? 0];
+  }));
+  state.counts = Object.fromEntries(results);
+  renderViews();
+}
+
+const refresh = () => (currentView().kind === "config" ? loadConfig() : Promise.all([loadItems(), loadCounts()]));
+
+function chip(cls, ...text) { return h("span", { class: `chip ${cls}` }, ...text); }
+const taskChip = (task) => chip(task.status, t(`st_${task.status}`));
+const reportChip = (r) => (r.needs_review ? chip("review", t("inReview")) : chip(r.status, t(`rs_${r.status}`)));
 
 function renderList() {
+  const v = currentView();
+  if (v.kind === "config") return renderConfigList();
   const list = $("items");
-  if (!state.reports.length) {
+  if (!state.items.length) {
     list.replaceChildren(h("li", { class: "empty" }, h("div", { class: "big" }, "✨"), h("strong", {}, t("emptyTitle")), h("div", {}, t("emptyBody"))));
     return;
   }
-  list.replaceChildren(...state.reports.map((r) => {
-    const photo = r.photo_paths?.[0];
-    return h("li", {
-      class: "item", role: "option", tabindex: "0", "aria-selected": String(r.id === state.selectedId), "data-id": r.id,
-      onclick: () => select(r.id),
-      onkeydown: (e) => { if (e.key === "Enter") select(r.id); },
-    },
-      photo ? h("img", { class: "thumb", src: PHOTO_BASE + photo, alt: "", loading: "lazy" }) : h("div", { class: "thumb", "aria-hidden": "true" }, categoryIcon(r.category_id)),
+  list.replaceChildren(...state.items.map((x) => {
+    const photo = x.photo_paths?.[0];
+    const tags = v.kind === "tasks"
+      ? [taskChip(x), isOverdue(x) ? chip("overdue", "⏰ ", t("overdue")) : null, x.escalation_count ? chip("neutral", "↑", x.escalation_count) : null,
+         x.upvote_count > 1 ? chip("neutral", "👥 ", x.upvote_count) : null]
+      : [reportChip(x), ...(x.tasks || []).map((tk) => chip(tk.status, state.sectors.get(tk.sector_id)?.icon ?? "", " ", t(`st_${tk.status}`))),
+         x.flag_count ? chip("flag", "🚩 ", x.flag_count) : null];
+    return h("li", { class: "item", role: "option", tabindex: "0", "aria-selected": String(x.id === state.selectedId), "data-id": x.id,
+      onclick: () => select(x.id), onkeydown: (e) => { if (e.key === "Enter") select(x.id); } },
+      photo ? h("img", { class: "thumb", src: PHOTO_BASE + photo, alt: "", loading: "lazy" }) : h("div", { class: "thumb", "aria-hidden": "true" }, categoryIcon(x.category_id)),
       h("div", { style: "min-width:0" },
-        h("div", { class: "title" }, h("span", { "aria-hidden": "true" }, categoryIcon(r.category_id)), categoryName(r.category_id)),
-        h("div", { class: "sub" }, placeLine(r)),
-        h("div", { class: "sub" }, timeAgo(r.created_at), " · ", authorityName(r)),
-        h("div", { class: "tags" }, statusChip(r),
-          isOverdue(r) ? h("span", { class: "chip overdue" }, "⏰ ", t("overdue")) : null,
-          r.escalation_count > 0 ? h("span", { class: "chip neutral" }, "↑", r.escalation_count) : null,
-          r.flag_count > 0 ? h("span", { class: "chip flag" }, "🚩 ", t("flags", r.flag_count)) : null,
-          r.reporter_banned_at ? h("span", { class: "chip rejected" }, t("f_banned")) : null)));
+        h("div", { class: "title" }, h("span", { "aria-hidden": "true" }, categoryIcon(x.category_id)), categoryLabel(x.category_id)),
+        h("div", { class: "sub" }, placeOf(x)),
+        h("div", { class: "sub" }, v.kind === "tasks" ? `${sectorLabel(x.sector_id)} · ${entityName(x.entity_id)}` : timeAgo(x.created_at)),
+        h("div", { class: "tags" }, tags)));
   }));
 }
 
@@ -794,426 +749,562 @@ function select(id) {
   renderDetail();
 }
 
-function showReportsLayout() {
-  $("filters").hidden = false;
+// #task=<id> (emails) and #report=<id>
+async function openFromHash() {
+  const params = new URLSearchParams(location.hash.slice(1));
+  const taskId = params.get("task");
+  const reportId = params.get("report");
+  if ($("app").hidden || (!taskId && !reportId)) return;
+  const viewId = taskId ? (listViews().find((v) => v.id === "all" || v.id === "open")?.id) : (isStaff() ? "reports" : null);
+  if (!viewId) return;
+  const table = taskId ? "staff_tasks" : "staff_reports";
+  const { data } = await supabase.from(table).select("*").eq("id", taskId || reportId).maybeSingle();
+  if (!data) return;
+  if (state.view !== viewId) { state.view = viewId; renderViews(); renderFilters(); }
+  state.items = [data, ...state.items.filter((x) => x.id !== data.id)];
+  renderList();
+  select(data.id);
 }
 
-// ---------------------------------------------------------------- Report detail
-async function renderDetail() {
-  if (state.view === "admin") return;
-  const pane = $("detail");
+// ---------------------------------------------------------------- Detail
+function renderDetail() {
+  const v = currentView();
   if (state.detailMap) { state.detailMap.remove(); state.detailMap = null; }
-  const r = state.reports.find((x) => x.id === state.selectedId);
-  if (!r) {
-    pane.replaceChildren(h("div", { class: "empty" }, h("div", { class: "big" }, "🗂️"), t("pick")));
-    return;
-  }
+  if (v.kind === "config") return renderConfigDetail();
+  const x = state.items.find((i) => i.id === state.selectedId);
+  if (!x) { $("detail").replaceChildren(h("div", { class: "empty" }, h("div", { class: "big" }, "🗂️"), t("pick"))); return; }
+  if (v.kind === "tasks") renderTaskDetail(x); else renderReportDetail(x);
+}
 
-  const actions = h("div", { class: "actions" });
-  if (r.needs_review) {
-    actions.append(h("span", { class: "label" }, t("decide")),
-      h("button", { class: "btn ok", type: "button", onclick: () => approve(r) }, "✓ ", t("approve"), h("span", { class: "kbd" }, "A")),
-      h("button", { class: "btn bad", type: "button", onclick: () => reject(r) }, t("reject"), h("span", { class: "kbd" }, "R")));
-  } else {
-    actions.append(h("span", { class: "label" }, t("changeStatus")));
-    const next = {
-      submitted: [["verified", "verify", "primary"], ["in_progress", "start"], ["resolved", "resolve"]],
-      verified: [["in_progress", "start", "primary"], ["resolved", "resolve"]],
-      in_progress: [["resolved", "resolve", "ok"]],
-      resolved: [["in_progress", "reopen"]],
-      rejected: [["submitted", "reopen"]],
-      duplicate: [["submitted", "reopen"]],
-    }[r.status] || [];
-    next.forEach(([status, key, style], i) => actions.append(h("button", { class: `btn ${style || ""}`, type: "button", onclick: () => changeStatus(r, status, key) },
-      t(key), i === 0 && status === "verified" ? h("span", { class: "kbd" }, "A") : null)));
-    if (!["rejected", "duplicate"].includes(r.status)) {
-      actions.append(
-        h("button", { class: "btn", type: "button", onclick: () => markDuplicate(r) }, t("duplicate")),
-        h("button", { class: "btn bad", type: "button", onclick: () => reject(r) }, t("reject"), h("span", { class: "kbd" }, "R")));
-    }
-    if (OPEN.includes(r.status) && r.assigned_pcode) {
-      actions.append(h("button", { class: "btn", type: "button", onclick: () => escalate(r) }, "↑ ", t("escalate"), h("span", { class: "kbd" }, "E")));
-    }
-    if (OPEN.includes(r.status) && isStaff()) {
-      actions.append(h("button", { class: "btn", type: "button", onclick: () => assign(r) }, t("assign")));
-    }
-  }
-  if (r.reporter_id && isStaff()) {
-    actions.append(r.reporter_banned_at
-      ? h("button", { class: "btn ghost", type: "button", onclick: () => unban(r) }, t("unban"))
-      : h("button", { class: "btn ghost", type: "button", style: "color:var(--bad)", onclick: () => ban(r) }, "⛔ ", t("ban")));
-  }
+const backButton = () => h("button", { class: "btn small back", type: "button", onclick: () => $("app").classList.remove("showing-detail") }, lang === "ar" ? "→ " : "← ", t("back"));
 
-  const reasons = (r.review_reasons || []).map((code) => code === "far_from_device" ? t("r_far_from_device", r.device_distance_m) : t(`r_${code}`));
-  const mapBox = h("div", { class: "map", role: "img", "aria-label": `${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}` });
-  const historyList = h("ol", { class: "timeline" }, h("li", { class: "muted" }, "…"));
-  const assignmentList = h("ol", { class: "timeline" }, h("li", { class: "muted" }, "…"));
-  const flagsBox = h("div", { class: "muted" }, "…");
-  const areaPath = [r.subdistrict_pcode, r.district_pcode, r.governorate_pcode].filter(Boolean).map(areaName).join(lang === "ar" ? " ← " : " → ");
+function reportHeader(r, chips) {
+  return h("div", { class: "d-head" },
+    h("div", { class: "d-icon", "aria-hidden": "true" }, categoryIcon(r.category_id)),
+    h("div", {},
+      h("h2", {}, categoryLabel(r.category_id)),
+      h("div", { class: "meta" }, placeOf(r), " · ", timeAgo(r.reported_at || r.created_at)),
+      h("div", { class: "d-chips" }, chips, h("span", { class: "chip neutral" }, t(`sev_${r.severity}`)),
+        r.upvote_count > 1 ? chip("neutral", "👥 ", t("votes", r.upvote_count)) : null,
+        r.flag_count ? chip("flag", "🚩 ", t("flags", r.flag_count)) : null)));
+}
 
-  pane.replaceChildren(h("div", { class: "detail-inner" },
-    h("button", { class: "btn small back", type: "button", onclick: () => $("app").classList.remove("showing-detail") }, lang === "ar" ? "→ " : "← ", t("back")),
-    h("div", { class: "d-head" },
-      h("div", { class: "d-icon", "aria-hidden": "true" }, categoryIcon(r.category_id)),
-      h("div", {},
-        h("h2", {}, categoryName(r.category_id)),
-        h("div", { class: "meta" }, placeLine(r), " · ", timeAgo(r.created_at)),
-        h("div", { class: "d-chips" }, statusChip(r),
-          isOverdue(r) ? h("span", { class: "chip overdue" }, "⏰ ", t("overdue")) : null,
-          h("span", { class: "chip neutral" }, t(`sev_${r.severity}`)),
-          r.upvote_count > 0 ? h("span", { class: "chip neutral" }, "👍 ", t("votes", r.upvote_count)) : null,
-          r.flag_count > 0 ? h("span", { class: "chip flag" }, "🚩 ", t("flags", r.flag_count)) : null))),
-    actions,
-    reasons.length ? h("div", { class: r.needs_review ? "alert" : "alert calm", role: "note" },
-      h("strong", {}, t(r.needs_review ? "whyReview" : "spamChecks")), h("ul", {}, reasons.map((x) => h("li", {}, x)))) : null,
+function photosAndText(r) {
+  return [
     r.photo_paths?.length ? h("div", { class: "photos" }, r.photo_paths.map((p) => h("a", { href: PHOTO_BASE + p, target: "_blank", rel: "noopener" }, h("img", { src: PHOTO_BASE + p, alt: "", loading: "lazy" })))) : null,
     r.description ? h("p", { class: "desc" }, r.description) : null,
-    h("div", { class: "grid2" },
-      h("div", { class: "panel" }, h("h3", {}, t("responsibility")),
-        h("dl", { class: "facts" },
-          h("dt", {}, t("f_area")), h("dd", {}, areaPath || t("noArea")),
-          h("dt", {}, t("f_responsible")), h("dd", {}, authorityName(r)),
-          h("dt", {}, t("f_deadline")), h("dd", { class: isOverdue(r) ? "late" : null }, r.due_at ? `${formatDate(r.due_at)} (${timeAgo(r.due_at)})` : "—"),
-          h("dt", {}, t("f_escalations")), h("dd", {}, r.escalation_count || 0))),
-      h("div", { class: "panel" }, h("h3", {}, t("assignments")), assignmentList),
-      h("div", { class: "panel" }, h("h3", {}, t("location")), mapBox,
-        h("dl", { class: "facts", style: "margin-top:10px" },
-          h("dt", {}, t("f_address")), h("dd", {}, r.address || "—"),
-          h("dt", {}, t("f_coords")), h("dd", {}, `${r.lat.toFixed(5)}, ${r.lng.toFixed(5)} `,
-            h("a", { href: `https://www.openstreetmap.org/?mlat=${r.lat}&mlon=${r.lng}#map=18/${r.lat}/${r.lng}`, target: "_blank", rel: "noopener" }, t("openMaps"))),
-          r.device_distance_m != null ? [h("dt", {}, t("f_distance")), h("dd", {}, formatDistance(r.device_distance_m))] : null)),
-      h("div", { class: "panel" }, h("h3", {}, t("details")),
-        h("dl", { class: "facts" },
-          h("dt", {}, t("f_reported")), h("dd", {}, formatDate(r.created_at)),
-          h("dt", {}, t("f_severity")), h("dd", {}, t(`sev_${r.severity}`)),
-          h("dt", {}, t("reporter")), h("dd", {}, r.reporter_name || t("anonymous"),
-            r.is_anonymous ? h("span", { class: "muted" }, ` (${t("f_hidden")})`) : null),
-          isStaff() ? [h("dt", {}, t("f_banned")), h("dd", {}, r.reporter_banned_at ? `${t("yes")} · ${formatDate(r.reporter_banned_at)}` : t("no"))] : null,
-          h("dt", {}, t("f_id")), h("dd", {}, h("code", { style: "font-size:12px" }, r.id), copyButton(r.id)),
-          r.duplicate_of ? [h("dt", {}, t("duplicateOf")), h("dd", {}, h("code", { style: "font-size:12px" }, r.duplicate_of))] : null)),
-      h("div", { class: "panel" }, h("h3", {}, t("history")), historyList),
-      h("div", { class: "panel" }, h("h3", {}, t("flagsTitle")), flagsBox),
-    ),
-  ));
-  pane.scrollTop = 0;
+  ];
+}
 
-  showMap(mapBox, r);
-  const [{ data: history }, { data: flags }, { data: assignments }] = await Promise.all([
-    supabase.from("report_status_history").select("from_status, to_status, note, created_at").eq("report_id", r.id).order("created_at"),
-    supabase.from("report_flags").select("reason, created_at").eq("report_id", r.id).order("created_at", { ascending: false }),
-    supabase.from("report_assignments").select("from_pcode, to_pcode, reason, note, created_at").eq("report_id", r.id).order("created_at"),
+function locationPanel(r) {
+  const box = h("div", { class: "map", role: "img", "aria-label": `${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}` });
+  showMap(box, r);
+  const area = [r.subdistrict_pcode, r.district_pcode, r.governorate_pcode].filter(Boolean).map(areaName).join(lang === "ar" ? " ← " : " → ");
+  return h("div", { class: "panel" }, h("h3", {}, t("location")), box,
+    h("dl", { class: "facts", style: "margin-top:10px" },
+      h("dt", {}, t("f_area")), h("dd", {}, area || "—"),
+      h("dt", {}, t("f_address")), h("dd", {}, r.address || "—"),
+      h("dt", {}, t("f_coords")), h("dd", {}, `${r.lat.toFixed(5)}, ${r.lng.toFixed(5)} `,
+        h("a", { href: `https://www.openstreetmap.org/?mlat=${r.lat}&mlon=${r.lng}#map=18/${r.lat}/${r.lng}`, target: "_blank", rel: "noopener" }, t("openMaps")))));
+}
+
+function detailsPanel(r, reportId) {
+  return h("div", { class: "panel" }, h("h3", {}, t("details")),
+    h("dl", { class: "facts" },
+      h("dt", {}, t("f_reported")), h("dd", {}, fmtDate(r.reported_at || r.created_at)),
+      h("dt", {}, t("reporter")), h("dd", {}, r.reporter_name || t("anonymous"), r.is_anonymous ? h("span", { class: "muted" }, ` (${t("f_hidden")})`) : null),
+      isStaff() && r.reporter_id ? [h("dt", {}, t("f_banned")), h("dd", {}, r.reporter_banned_at ? `${t("yes")} · ${fmtDate(r.reporter_banned_at)}` : t("no"))] : null,
+      h("dt", {}, t("f_id")), h("dd", {}, h("code", { style: "font-size:12px" }, reportId), copyButton(reportId))));
+}
+
+function renderTaskDetail(task) {
+  const actions = h("div", { class: "actions" }, h("span", { class: "label" }, t("changeStatus")));
+  const next = { new: [["verified", "verify", "primary"], ["in_progress", "start"], ["resolved", "resolve"]],
+    verified: [["in_progress", "start", "primary"], ["resolved", "resolve"]], in_progress: [["resolved", "resolve", "ok"]],
+    resolved: [["new", "reopen"]], rejected: [["new", "reopen"]], transferred: [] }[task.status] || [];
+  next.forEach(([status, key, style], i) => actions.append(h("button", { class: `btn ${style || ""}`, type: "button", onclick: () => changeTask(task, status, key) },
+    t(key), i === 0 && status === "verified" ? h("span", { class: "kbd" }, "A") : null)));
+  if (OPEN.includes(task.status)) {
+    actions.append(h("button", { class: "btn bad", type: "button", onclick: () => changeTask(task, "rejected", "reject") }, t("reject"), h("span", { class: "kbd" }, "R")));
+    if (task.entity_id) actions.append(h("button", { class: "btn", type: "button", onclick: () => escalate(task) }, "↑ ", t("escalate"), h("span", { class: "kbd" }, "E")));
+    actions.append(h("button", { class: "btn", type: "button", onclick: () => transfer(task) }, t("transfer")));
+    if (assignOptions(task).length) actions.append(h("button", { class: "btn", type: "button", onclick: () => assign(task) }, t("assign")));
+  }
+
+  const otherTasks = h("ul", { class: "plain" }, h("li", { class: "muted" }, "…"));
+  const events = h("ol", { class: "timeline" }, h("li", { class: "muted" }, "…"));
+  const history = h("ol", { class: "timeline" }, h("li", { class: "muted" }, "…"));
+  const flags = h("div", { class: "muted" }, "…");
+
+  $("detail").replaceChildren(h("div", { class: "detail-inner" }, backButton(),
+    reportHeader(task, [taskChip(task), isOverdue(task) ? chip("overdue", "⏰ ", t("overdue")) : null]),
+    actions,
+    photosAndText(task),
+    h("div", { class: "grid2" },
+      h("div", { class: "panel" }, h("h3", {}, t("thisTask")),
+        h("dl", { class: "facts" },
+          h("dt", {}, t("f_sector")), h("dd", {}, sectorLabel(task.sector_id)),
+          h("dt", {}, t("f_entity")), h("dd", {}, entityName(task.entity_id)),
+          h("dt", {}, t("f_deadline")), h("dd", { class: isOverdue(task) ? "late" : null }, task.due_at ? `${fmtDate(task.due_at)} (${timeAgo(task.due_at)})` : "—"),
+          h("dt", {}, t("f_escalations")), h("dd", {}, task.escalation_count || 0))),
+      h("div", { class: "panel" }, h("h3", {}, t("otherTasks")), otherTasks),
+      locationPanel(task),
+      detailsPanel(task, task.report_id),
+      h("div", { class: "panel" }, h("h3", {}, t("taskHistory")), events),
+      h("div", { class: "panel" }, h("h3", {}, t("statusHistory")), history),
+      h("div", { class: "panel" }, h("h3", {}, t("flagsTitle")), flags))));
+  $("detail").scrollTop = 0;
+  loadTaskExtras(task, { otherTasks, events, history, flags });
+}
+
+async function loadTaskExtras(task, el) {
+  const [tasks, events, history, flags] = await Promise.all([
+    supabase.from("report_tasks").select("id, sector_id, entity_id, status, due_at").eq("report_id", task.report_id),
+    supabase.from("task_events").select("kind, from_entity, to_entity, status, note, created_at").eq("task_id", task.id).order("created_at"),
+    supabase.from("report_status_history").select("to_status, note, created_at").eq("report_id", task.report_id).order("created_at"),
+    supabase.from("report_flags").select("reason, created_at").eq("report_id", task.report_id),
   ]);
-  if (state.selectedId !== r.id) return;
-  historyList.replaceChildren(...(history?.length ? history.map((x) => h("li", {},
-    h("strong", {}, t(`s_${x.to_status}`)), " · ", h("span", { class: "muted" }, formatDate(x.created_at)),
-    x.note ? h("div", { class: "note" }, x.note) : null)) : [h("li", { class: "muted" }, t("noHistory"))]));
-  assignmentList.replaceChildren(...(assignments?.length ? assignments.map((x) => h("li", {},
-    h("strong", {}, t(`a_${x.reason}`)), " · ", h("span", { class: "muted" }, formatDate(x.created_at)),
-    h("div", {}, `${t("movedTo")}: ${x.to_pcode ? officeName(x.to_pcode) : t("central")}`),
-    x.note ? h("div", { class: "note" }, x.note) : null)) : [h("li", { class: "muted" }, t("noHistory"))]));
-  flagsBox.replaceChildren(flags?.length
-    ? h("ul", { style: "margin:0;padding-inline-start:18px" }, flags.map((f) => h("li", {}, t(`fr_${f.reason}`), h("span", { class: "muted" }, ` · ${timeAgo(f.created_at)}`))))
+  if (state.selectedId !== task.id) return;
+  el.otherTasks.replaceChildren(...(tasks.data || []).map((o) => h("li", {},
+    h("span", { class: "grow" }, h("strong", {}, sectorLabel(o.sector_id)), h("div", { class: "muted", style: "font-size:13px" }, entityName(o.entity_id))),
+    taskChip(o), o.id !== task.id ? h("button", { class: "copy", type: "button", onclick: () => { location.hash = `task=${o.id}`; } }, "↗") : null)));
+  el.events.replaceChildren(...((events.data || []).length ? events.data.map((e) => h("li", {},
+    h("strong", {}, t(`ev_${e.kind}`)), e.status && e.kind === "status" ? ` · ${t(`st_${e.status}`)}` : "", " · ", h("span", { class: "muted" }, fmtDate(e.created_at)),
+    e.to_entity !== undefined && ["created", "overdue", "escalated", "assigned"].includes(e.kind) ? h("div", {}, `${t("to")}: ${entityName(e.to_entity)}`) : null,
+    e.note ? h("div", { class: "note" }, e.note) : null)) : [h("li", { class: "muted" }, t("noHistory"))]));
+  el.history.replaceChildren(...((history.data || []).length ? history.data.map((x) => h("li", {},
+    h("strong", {}, t(`rs_${x.to_status}`)), " · ", h("span", { class: "muted" }, fmtDate(x.created_at)), x.note ? h("div", { class: "note" }, x.note) : null))
+    : [h("li", { class: "muted" }, t("noHistory"))]));
+  el.flags.replaceChildren((flags.data || []).length
+    ? h("ul", { style: "margin:0;padding-inline-start:18px" }, flags.data.map((f) => h("li", {}, t(`fr_${f.reason}`), h("span", { class: "muted" }, ` · ${timeAgo(f.created_at)}`))))
     : t("noFlags"));
+}
+
+function renderReportDetail(r) {
+  const actions = h("div", { class: "actions" }, h("span", { class: "label" }, t("decide")));
+  if (r.needs_review) {
+    actions.append(
+      h("button", { class: "btn ok", type: "button", onclick: () => run("review_report", { p_report_id: r.id, p_approve: true, p_note: null }) }, "✓ ", t("approve"), h("span", { class: "kbd" }, "A")),
+      h("button", { class: "btn bad", type: "button", onclick: () => rejectReport(r) }, t("rejectAll"), h("span", { class: "kbd" }, "R")));
+  } else if (!["rejected", "duplicate", "resolved"].includes(r.status)) {
+    actions.append(
+      h("button", { class: "btn", type: "button", onclick: () => reportStatus(r, "resolved", "d_resolve_all", "d_resolve_all_body", "resolveAll") }, t("resolveAll")),
+      h("button", { class: "btn", type: "button", onclick: () => duplicateReport(r) }, t("duplicate")),
+      h("button", { class: "btn bad", type: "button", onclick: () => rejectReport(r) }, t("rejectAll"), h("span", { class: "kbd" }, "R")));
+  }
+  if (r.reporter_id) {
+    actions.append(r.reporter_banned_at
+      ? h("button", { class: "btn ghost", type: "button", onclick: () => banUser(r, false) }, t("unban"))
+      : h("button", { class: "btn ghost", type: "button", style: "color:var(--bad)", onclick: () => banUser(r, true) }, "⛔ ", t("ban")));
+  }
+  const reasons = (r.review_reasons || []).map((c) => (c === "far_from_device" ? t("r_far_from_device", r.device_distance_m) : t(`r_${c}`)));
+  const history = h("ol", { class: "timeline" }, h("li", { class: "muted" }, "…"));
+  $("detail").replaceChildren(h("div", { class: "detail-inner" }, backButton(),
+    reportHeader(r, [reportChip(r)]),
+    actions,
+    reasons.length ? h("div", { class: r.needs_review ? "alert" : "alert calm" }, h("strong", {}, t(r.needs_review ? "whyReview" : "spamChecks")), h("ul", {}, reasons.map((x) => h("li", {}, x)))) : null,
+    photosAndText(r),
+    h("div", { class: "grid2" },
+      h("div", { class: "panel" }, h("h3", {}, t("tasksTitle")),
+        (r.tasks || []).length ? h("ul", { class: "plain" }, r.tasks.map((tk) => h("li", {},
+          h("span", { class: "grow" }, h("button", { class: "linkish", type: "button", onclick: () => { location.hash = `task=${tk.id}`; } }, sectorLabel(tk.sector_id)),
+            h("div", { class: "muted", style: "font-size:13px" }, entityName(tk.entity_id), tk.due_at ? ` · ${timeAgo(tk.due_at)}` : "")),
+          taskChip(tk)))) : h("p", { class: "muted" }, "—")),
+      locationPanel(r),
+      detailsPanel(r, r.id),
+      h("div", { class: "panel" }, h("h3", {}, t("statusHistory")), history))));
+  $("detail").scrollTop = 0;
+  supabase.from("report_status_history").select("to_status, note, created_at").eq("report_id", r.id).order("created_at").then(({ data }) => {
+    if (state.selectedId !== r.id) return;
+    history.replaceChildren(...((data || []).length ? data.map((x) => h("li", {}, h("strong", {}, t(`rs_${x.to_status}`)), " · ",
+      h("span", { class: "muted" }, fmtDate(x.created_at)), x.note ? h("div", { class: "note" }, x.note) : null)) : [h("li", { class: "muted" }, t("noHistory"))]));
+  });
 }
 
 function copyButton(text) {
   const b = h("button", { class: "copy", type: "button" }, t("copy"));
-  b.addEventListener("click", async () => { try { await navigator.clipboard.writeText(text); b.textContent = t("copied"); } catch { /* clipboard blocked */ } });
+  b.addEventListener("click", async () => { try { await navigator.clipboard.writeText(text); b.textContent = t("copied"); } catch { /* blocked */ } });
   return b;
 }
 
 async function showMap(container, r) {
   try {
     const maplibre = window.maplibregl || (await import("https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/+esm")).default;
-    if (state.selectedId !== r.id) return;
     const map = new maplibre.Map({ container, style: MAP_STYLE, center: [r.lng, r.lat], zoom: 16, attributionControl: { compact: true }, cooperativeGestures: true });
     new maplibre.Marker({ color: "#e8590c" }).setLngLat([r.lng, r.lat]).addTo(map);
+    if (state.detailMap) state.detailMap.remove();
     state.detailMap = map;
-  } catch {
-    container.textContent = `${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}`;
-  }
+  } catch { container.textContent = `${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}`; }
 }
 
-// ---------------------------------------------------------------- Report actions
-function ask({ title, body, okText, okClass = "primary", noteLabel = t("noteLabel"), withDuplicate = false, assignOptions = null }) {
+// ---------------------------------------------------------------- Actions
+function ask({ title, body, okText, okClass = "primary", noteLabel = t("noteLabel"), extra = null }) {
   const dialog = $("dialog");
   $("dialog-title").textContent = title;
   $("dialog-body").textContent = body;
   $("dialog-note-label").textContent = noteLabel;
   $("dialog-note").value = "";
-  $("dialog-dup").value = "";
-  $("dialog-dup-field").hidden = !withDuplicate;
-  $("dialog-assign-field").hidden = !assignOptions;
-  if (assignOptions) $("dialog-assign").replaceChildren(...assignOptions);
-  const ok = $("dialog-ok");
-  ok.textContent = okText;
-  ok.className = `btn ${okClass}`;
+  $("dialog-extra").replaceChildren(...(extra ? [extra] : []));
+  $("dialog-ok").textContent = okText;
+  $("dialog-ok").className = `btn ${okClass}`;
   return new Promise((resolve) => {
-    dialog.addEventListener("close", () => {
-      resolve(dialog.returnValue === "ok" ? {
-        note: $("dialog-note").value.trim() || null,
-        duplicateOf: $("dialog-dup").value.trim() || null,
-        assignTo: $("dialog-assign").value,
-      } : null);
-    }, { once: true });
+    dialog.addEventListener("close", () => resolve(dialog.returnValue === "ok"
+      ? { note: $("dialog-note").value.trim() || null, value: extra?.querySelector("select, input")?.value ?? null } : null), { once: true });
     dialog.showModal();
-    (withDuplicate ? $("dialog-dup") : assignOptions ? $("dialog-assign") : $("dialog-note")).focus();
+    (extra?.querySelector("select, input") ?? $("dialog-note")).focus();
   });
 }
 
-async function run(rpc, args, doneText) {
+async function run(rpc, args, message = t("done")) {
   const { data, error } = await supabase.rpc(rpc, args);
-  if (error) { toast(errorText(error), true); return false; }
-  toast(typeof doneText === "function" ? doneText(data) : doneText);
-  const index = state.reports.findIndex((x) => x.id === args.p_report_id);
+  if (error) { toast(errorText(error), true); return null; }
+  toast(typeof message === "function" ? message(data) : message);
+  const index = state.items.findIndex((x) => x.id === state.selectedId);
+  await loadReference();
   await refresh();
-  // Keep moving: select the next report in the list.
-  const next = state.reports[Math.min(Math.max(index, 0), state.reports.length - 1)];
-  if (next && !state.reports.some((x) => x.id === state.selectedId)) select(next.id);
+  if (!state.items.some((x) => x.id === state.selectedId) && state.items.length) select(state.items[Math.min(Math.max(index, 0), state.items.length - 1)].id);
   else renderDetail();
-  return true;
+  return data ?? true;
 }
 
-function approve(r) { return run("review_report", { p_report_id: r.id, p_approve: true, p_note: null }, t("done_approve")); }
+async function changeTask(task, status, key) {
+  const answer = await ask({ title: t("d_status", t(`st_${status}`)), body: t("d_status_body"), okText: t(key), okClass: status === "rejected" ? "bad" : "primary" });
+  if (answer) await run("set_task_status", { p_task_id: task.id, p_status: status, p_note: answer.note });
+}
 
-async function reject(r) {
-  const answer = await ask({ title: t("d_reject"), body: t("d_reject_body"), okText: t("reject"), okClass: "bad" });
+async function escalate(task) {
+  const answer = await ask({ title: t("d_escalate"), body: t("d_escalate_body"), okText: t("escalate"), noteLabel: t("escalateNote") });
+  if (answer) await run("escalate_task", { p_task_id: task.id, p_note: answer.note }, (to) => `${t("done")} → ${entityName(to)}`);
+}
+
+async function transfer(task) {
+  const select = h("select", { class: "input" }, [...state.sectors.values()].filter((s) => s.is_active && s.id !== task.sector_id).map((s) => h("option", { value: s.id }, `${s.icon} ${nm(s)}`)));
+  const answer = await ask({ title: t("d_transfer"), body: t("d_transfer_body"), okText: t("transfer").replace("…", ""), noteLabel: t("escalateNote"),
+    extra: h("div", { class: "field" }, h("label", {}, t("pickSector")), select) });
+  if (answer) await run("transfer_task", { p_task_id: task.id, p_sector: answer.value, p_note: answer.note });
+}
+
+// Offices of the task sector that this user may assign to: anyone for staff, offices below a member otherwise.
+function assignOptions(task) {
+  return [...state.entities.values()].filter((e) => e.is_active && e.sector_id === task.sector_id && e.id !== task.entity_id
+    && (isStaff() || state.me.memberships.some((m) => m.sector_id === task.sector_id && isUnder(e.area_pcode, m.area_pcode))));
+}
+
+async function assign(task) {
+  const select = h("select", { class: "input" }, assignOptions(task)
+    .sort((a, b) => (state.areas.get(a.area_pcode)?.level ?? 0) - (state.areas.get(b.area_pcode)?.level ?? 0))
+    .map((e) => h("option", { value: e.id }, `${nm(e)} · ${t(`lv${state.areas.get(e.area_pcode)?.level ?? 0}`)}`)));
+  const answer = await ask({ title: t("d_assign"), body: t("d_assign_body"), okText: t("assign").replace("…", ""), noteLabel: t("escalateNote"),
+    extra: h("div", { class: "field" }, h("label", {}, t("pickEntity")), select) });
+  if (answer) await run("assign_task", { p_task_id: task.id, p_entity_id: answer.value, p_note: answer.note });
+}
+
+async function rejectReport(r) {
+  const answer = await ask({ title: t("d_reject_all"), body: t("d_reject_all_body"), okText: t("rejectAll"), okClass: "bad" });
   if (!answer) return;
-  if (r.needs_review) return run("review_report", { p_report_id: r.id, p_approve: false, p_note: answer.note }, t("done_reject"));
-  return run("set_report_status", { p_report_id: r.id, p_status: "rejected", p_note: answer.note }, t("done_reject"));
+  if (r.needs_review) await run("review_report", { p_report_id: r.id, p_approve: false, p_note: answer.note });
+  else await run("set_report_status", { p_report_id: r.id, p_status: "rejected", p_note: answer.note });
 }
-
-async function changeStatus(r, status, key) {
-  const answer = await ask({ title: t("d_status", t(`s_${status}`)), body: t("d_status_body"), okText: t(key) });
+async function reportStatus(r, status, titleKey, bodyKey, okKey) {
+  const answer = await ask({ title: t(titleKey), body: t(bodyKey), okText: t(okKey) });
+  if (answer) await run("set_report_status", { p_report_id: r.id, p_status: status, p_note: answer.note });
+}
+async function duplicateReport(r) {
+  const answer = await ask({ title: t("d_dup"), body: t("d_dup_body"), okText: t("duplicate").replace("…", ""),
+    extra: h("div", { class: "field" }, h("label", {}, t("dupId")), h("input", { class: "input", dir: "ltr" })) });
+  if (answer) await run("set_report_status", { p_report_id: r.id, p_status: "duplicate", p_note: answer.note, p_duplicate_of: answer.value });
+}
+async function banUser(r, ban) {
+  const answer = await ask({ title: t(ban ? "d_ban" : "d_unban"), body: t(ban ? "d_ban_body" : "d_unban_body"), okText: t(ban ? "ban" : "unban"), okClass: ban ? "bad" : "primary", noteLabel: t("reasonLabel") });
   if (!answer) return;
-  return run("set_report_status", { p_report_id: r.id, p_status: status, p_note: answer.note }, t("done_status"));
+  if (ban) await run("ban_user", { p_user_id: r.reporter_id, p_reason: answer.note });
+  else await run("unban_user", { p_user_id: r.reporter_id });
 }
 
-async function markDuplicate(r) {
-  const answer = await ask({ title: t("d_dup"), body: t("d_dup_body"), okText: t("duplicate"), withDuplicate: true });
-  if (!answer) return;
-  return run("set_report_status", { p_report_id: r.id, p_status: "duplicate", p_note: answer.note, p_duplicate_of: answer.duplicateOf }, t("done_status"));
+// ---------------------------------------------------------------- Setup: entities, issue types, sectors, settings
+async function loadConfig() {
+  const id = currentView().id;
+  if (id === "entities") {
+    const { data } = await supabase.from("entity_directory").select("*");
+    state.config.directory = data || [];
+  }
+  if (id === "settings") {
+    const [settings, rules] = await Promise.all([
+      supabase.from("app_settings").select("*").maybeSingle(),
+      supabase.from("escalation_rules").select("*").order("level", { ascending: false }),
+    ]);
+    state.config.settings = settings.data;
+    state.config.rules = rules.data || [];
+  }
+  renderList();
+  renderDetail();
 }
 
-async function escalate(r) {
-  const answer = await ask({ title: t("d_escalate"), body: t("d_escalate_body"), okText: t("escalate"), noteLabel: t("escalateNoteLabel") });
-  if (!answer) return;
-  return run("escalate_report", { p_report_id: r.id, p_note: answer.note }, (to) => t("done_escalate", to ? officeName(to) : t("central")));
+function configFilters(id) {
+  if (id !== "entities") return [];
+  const search = h("input", { class: "input wide", type: "search", placeholder: t("search"), value: state.config.search,
+    oninput: (e) => { state.config.search = e.target.value; renderConfigList(); } });
+  const sector = h("select", { class: "input", onchange: (e) => { state.config.sector = e.target.value; renderConfigList(); } },
+    h("option", { value: "" }, t("allSectors")), [...state.sectors.values()].map((s) => h("option", { value: s.id }, `${s.icon} ${nm(s)}`)));
+  sector.value = state.config.sector;
+  return [search, sector];
 }
 
-async function assign(r) {
-  const { data } = await supabase.from("authority_directory").select("area_pcode, level, name_en, name_ar, is_active").eq("is_active", true).order("level").order("area_pcode");
-  const options = (data || []).map((a) => h("option", { value: a.area_pcode }, `${lang === "ar" ? a.name_ar : a.name_en} · ${t(`lv${a.level}`)}`));
-  if (!options.length) { toast(t("e_noauth"), true); return; }
-  const answer = await ask({ title: t("d_assign"), body: t("d_assign_body"), okText: t("assign").replace("…", ""), noteLabel: t("escalateNoteLabel"), assignOptions: options });
-  if (!answer) return;
-  return run("assign_report", { p_report_id: r.id, p_area_pcode: answer.assignTo, p_note: answer.note }, t("done_assign"));
+function configItem(id, title, sub, tags, inactive) {
+  return h("li", { class: "item text-only", role: "option", tabindex: "0", "aria-selected": String(id === state.selectedId), "data-id": id,
+    onclick: () => select(id), onkeydown: (e) => { if (e.key === "Enter") select(id); } },
+    h("div", { style: "min-width:0" }, h("div", { class: "title" }, title), sub ? h("div", { class: "sub" }, sub) : null,
+      h("div", { class: "tags" }, tags, inactive ? chip("neutral", t("inactive")) : null)));
 }
 
-async function ban(r) {
-  const answer = await ask({ title: t("d_ban"), body: t("d_ban_body"), okText: t("ban"), okClass: "bad", noteLabel: t("reasonLabel") });
-  if (!answer) return;
-  const { data, error } = await supabase.rpc("ban_user", { p_user_id: r.reporter_id, p_reason: answer.note });
-  if (error) { toast(errorText(error), true); return; }
-  toast(t("done_ban", data ?? 0));
-  await refresh();
-}
-
-async function unban(r) {
-  const answer = await ask({ title: t("d_unban"), body: t("d_unban_body"), okText: t("unban"), noteLabel: t("reasonLabel") });
-  if (!answer) return;
-  const { error } = await supabase.rpc("unban_user", { p_user_id: r.reporter_id });
-  if (error) { toast(errorText(error), true); return; }
-  toast(t("done_unban"));
-  await refresh();
-}
-
-// ---------------------------------------------------------------- Admin: areas and authorities
-async function showAdmin() {
-  $("filters").hidden = true;
-  if (state.detailMap) { state.detailMap.remove(); state.detailMap = null; }
-  await loadAdminData();
-}
-
-async function loadAdminData() {
-  const [{ data: authorities }, { data: rules }, { data: settings }] = await Promise.all([
-    supabase.from("authority_directory").select("*"),
-    supabase.from("escalation_rules").select("level, verify_within, fix_within").order("level", { ascending: false }),
-    supabase.from("app_settings").select("restrict_to_service_area").maybeSingle(),
-  ]);
-  state.authorities = new Map((authorities || []).map((a) => [a.area_pcode, a]));
-  state.rules = rules || [];
-  state.settings = settings;
-  renderAdminList();
-  renderAdminDetail();
-}
-
-function renderAdminList() {
+function renderConfigList() {
+  const id = currentView().id;
   const list = $("items");
-  const head = h("li", { style: "padding:12px;border-bottom:1px solid var(--line);display:grid;gap:8px" },
-    h("input", { class: "input", type: "search", placeholder: t("areaSearch"), value: state.adminSearch,
-      oninput: (e) => { state.adminSearch = e.target.value; renderAdminItems(); } }),
-    h("select", { class: "input", onchange: (e) => { state.adminLevel = e.target.value; renderAdminItems(); } },
-      h("option", { value: "" }, t("allLevels")), [1, 2, 3].map((l) => h("option", { value: String(l) }, t(`lv${l}`)))),
-    h("button", { class: "btn small", type: "button", onclick: () => { state.adminSelected = null; renderAdminList(); renderAdminDetail(); $("app").classList.add("showing-detail"); } }, "⚙️ ", t("settings")));
-  head.querySelector("select").value = state.adminLevel;
-  list.replaceChildren(head);
-  renderAdminItems();
+  const newButton = (key, newId) => h("li", { style: "padding:12px;border-bottom:1px solid var(--line)" },
+    h("button", { class: "btn small primary", type: "button", onclick: () => select(newId) }, "+ ", t(key)));
+  if (id === "entities") {
+    const q = state.config.search.trim().toLowerCase();
+    const rows = state.config.directory
+      .filter((e) => !state.config.sector || e.sector_id === state.config.sector)
+      .filter((e) => !q || e.name_en.toLowerCase().includes(q) || e.name_ar.includes(q) || areaName(e.area_pcode).toLowerCase().includes(q))
+      .sort((a, b) => a.sector_id.localeCompare(b.sector_id) || a.level - b.level || a.area_pcode.localeCompare(b.area_pcode));
+    list.replaceChildren(newButton("newEntity", "new"), ...rows.map((e) => configItem(e.id, nm(e),
+      `${sectorLabel(e.sector_id)} · ${t(`lv${e.level}`)} · ${areaName(e.area_pcode)}`,
+      [e.open_count ? chip("neutral", t("openCount", e.open_count)) : null, e.overdue_count ? chip("overdue", t("overdueCount", e.overdue_count)) : null,
+       chip("neutral", "👤 ", e.member_count)], !e.is_active)));
+  } else if (id === "categories") {
+    list.replaceChildren(newButton("newCategory", "new"), ...[...state.categories.values()].map((c) => configItem(c.id, `${c.icon} ${nm(c)}`,
+      (state.catSectors.get(c.id) || []).map(sectorLabel).join(" · ") || "—", [], !c.is_active)));
+  } else if (id === "sectors") {
+    list.replaceChildren(newButton("newSector", "new"), ...[...state.sectors.values()].map((s) => configItem(s.id, `${s.icon} ${nm(s)}`, s.id, [], !s.is_active)));
+  } else {
+    list.replaceChildren();
+    if (!state.selectedId) state.selectedId = "settings";
+  }
 }
 
-function renderAdminItems() {
-  const list = $("items");
-  [...list.querySelectorAll(".item")].forEach((el) => el.remove());
-  const q = state.adminSearch.trim().toLowerCase();
-  const areas = [...state.areas.values()]
-    .filter((a) => a.level >= 1 && (!state.adminLevel || String(a.level) === state.adminLevel))
-    .filter((a) => !q || a.name_en.toLowerCase().includes(q) || a.name_ar.includes(q) || a.pcode.toLowerCase().includes(q))
-    .sort((a, b) => a.pcode.localeCompare(b.pcode))
-    .slice(0, 400);
-  list.append(...areas.map((a) => {
-    const authority = state.authorities.get(a.pcode);
-    const parent = a.parent_pcode && a.level > 1 ? areaName(a.parent_pcode) : "";
-    return h("li", { class: "item", style: "grid-template-columns:1fr", role: "option", tabindex: "0", "aria-selected": String(a.pcode === state.adminSelected),
-      onclick: () => { state.adminSelected = a.pcode; renderAdminItems(); renderAdminDetail(); $("app").classList.add("showing-detail"); },
-      onkeydown: (e) => { if (e.key === "Enter") e.currentTarget.click(); } },
-      h("div", { style: "min-width:0" },
-        h("div", { class: "level-tag" }, t(`lv${a.level}`), " · ", a.pcode),
-        h("div", { class: "title" }, areaName(a.pcode)),
-        parent ? h("div", { class: "sub" }, parent) : null,
-        h("div", { class: "tags" }, authority
-          ? [h("span", { class: authority.is_active ? "chip active" : "chip neutral" }, t("hasAuthority")),
-             authority.open_count ? h("span", { class: "chip neutral" }, t("openCount", authority.open_count)) : null,
-             authority.overdue_count ? h("span", { class: "chip overdue" }, t("overdueCount", authority.overdue_count)) : null]
-          : h("span", { class: "chip neutral" }, t("noAuthority")))));
-  }));
-}
-
-function renderAdminDetail() {
-  if (state.view !== "admin") return;
+function renderConfigDetail() {
+  const id = currentView().id;
   const pane = $("detail");
-  const back = h("button", { class: "btn small back", type: "button", onclick: () => $("app").classList.remove("showing-detail") }, lang === "ar" ? "→ " : "← ", t("back"));
-  if (!state.adminSelected) { pane.replaceChildren(h("div", { class: "detail-inner" }, back, settingsPanel())); return; }
-  const area = state.areas.get(state.adminSelected);
-  pane.replaceChildren(h("div", { class: "detail-inner" }, back, authorityPanel(area)));
+  const content = id === "settings" ? settingsForm()
+    : !state.selectedId ? h("div", { class: "empty" }, h("div", { class: "big" }, "🗂️"), t("pick"))
+    : id === "entities" ? entityForm(state.selectedId === "new" ? null : state.config.directory.find((e) => e.id === state.selectedId))
+    : id === "categories" ? categoryForm(state.selectedId === "new" ? null : state.categories.get(state.selectedId))
+    : sectorForm(state.selectedId === "new" ? null : state.sectors.get(state.selectedId));
+  pane.replaceChildren(h("div", { class: "detail-inner" }, backButton(), content));
 }
 
-function settingsPanel() {
-  const restrict = h("input", { type: "checkbox", id: "restrict", checked: state.settings?.restrict_to_service_area ?? true });
-  restrict.addEventListener("change", async () => {
-    const { error } = await supabase.rpc("set_restrict_to_service_area", { p_restrict: restrict.checked });
-    if (error) { toast(errorText(error), true); restrict.checked = !restrict.checked; } else toast(t("saved"));
-  });
-  const rows = state.rules.map((rule) => {
-    const days = (interval) => parseInt(String(interval).match(/(\d+) day/)?.[1] ?? "0", 10);
-    const verify = h("input", { class: "input", type: "number", min: "1", max: "365", value: String(days(rule.verify_within)), "aria-label": t("verifyDays") });
-    const fix = h("input", { class: "input", type: "number", min: "1", max: "365", value: String(days(rule.fix_within)), "aria-label": t("fixDays") });
-    const save = h("button", { class: "btn small", type: "button", onclick: async () => {
-      const { error } = await supabase.rpc("save_escalation_rule", { p_level: rule.level, p_verify_days: Number(verify.value), p_fix_days: Number(fix.value) });
-      toast(error ? errorText(error) : t("saved"), Boolean(error));
-    } }, t("save"));
-    return h("tr", {}, h("td", {}, t(`lv${rule.level}`)), h("td", {}, verify), h("td", {}, fix), h("td", {}, save));
-  });
-  const reroute = h("button", { class: "btn", type: "button", onclick: async () => {
-    const { data, error } = await supabase.rpc("reroute_open_reports");
-    toast(error ? errorText(error) : t("rerouted", data ?? 0), Boolean(error));
-  } }, "↻ ", t("reroute"));
-  return h("div", { style: "display:grid;gap:16px" },
-    h("h2", { style: "margin:0" }, t("settings")),
-    h("div", { class: "panel" },
-      h("label", { class: "switch", for: "restrict" }, restrict, t("restrictLabel")),
-      h("p", { class: "muted", style: "margin:8px 0 0;font-size:14px" }, t("restrictHelp"))),
-    h("div", { class: "panel" }, h("h3", {}, t("deadlines")),
-      h("table", { class: "rules" },
-        h("thead", {}, h("tr", {}, h("th", {}, t("level")), h("th", {}, t("verifyDays")), h("th", {}, t("fixDays")), h("th", {}))),
-        h("tbody", {}, rows))),
-    h("div", { class: "panel" }, h("h3", {}, t("reroute")),
-      h("p", { class: "muted", style: "margin:0 0 10px;font-size:14px" }, t("rerouteHelp")), reroute),
-    h("p", { class: "muted" }, t("pickArea")));
+const field = (label, input, hint) => h("div", { class: "field" }, h("label", {}, label), input, hint ? h("span", { class: "hint" }, hint) : null);
+const textInput = (value, attrs = {}) => h("input", { class: "input", value: value ?? "", ...attrs });
+const saveButton = (onSave) => {
+  const b = h("button", { class: "btn primary", type: "button" }, t("save"));
+  b.addEventListener("click", async () => { b.disabled = true; try { await onSave(); } finally { b.disabled = false; } });
+  return b;
+};
+
+// Areas an office can be created in: anywhere for the super admin; at or below one's own office otherwise.
+function allowedAreas(sectorId) {
+  const all = [...state.areas.values()];
+  if (isAdmin()) return all;
+  const roots = adminMemberships().filter((m) => m.sector_id === sectorId).map((m) => m.area_pcode);
+  return all.filter((a) => roots.some((root) => isUnder(a.pcode, root)));
 }
 
-function authorityPanel(area) {
-  const existing = state.authorities.get(area.pcode);
-  const crumbs = [];
-  for (let p = area.parent_pcode; p && state.areas.get(p)?.level >= 1; p = state.areas.get(p)?.parent_pcode) crumbs.unshift(areaName(p));
-  const levelWord = { 1: ["Governorate", "محافظة"], 2: ["District", "منطقة"], 3: ["Subdistrict", "ناحية"] }[area.level];
-  const field = (label, input) => h("div", { class: "field" }, h("label", {}, label), input);
-  const nameEn = h("input", { class: "input", value: existing?.name_en ?? `${area.name_en} ${levelWord[0]}` });
-  const nameAr = h("input", { class: "input", dir: "rtl", value: existing?.name_ar ?? `${levelWord[1]} ${area.name_ar}` });
-  const email = h("input", { class: "input", type: "email", dir: "ltr", value: existing?.email ?? "" });
-  const phone = h("input", { class: "input", type: "tel", dir: "ltr", value: existing?.phone ?? "" });
-  const active = h("input", { type: "checkbox", id: "auth-active", checked: existing ? existing.is_active : true });
-  const save = h("button", { class: "btn primary", type: "button", onclick: async () => {
-    save.disabled = true;
-    const { error } = await supabase.rpc("save_authority", {
-      p_area_pcode: area.pcode, p_name_en: nameEn.value, p_name_ar: nameAr.value, p_email: email.value, p_phone: phone.value, p_is_active: active.checked,
-    });
-    save.disabled = false;
-    if (error) { toast(errorText(error), true); return; }
-    toast(t("saved"));
-    await loadAdminData();
-  } }, t("save"));
+function entityForm(e) {
+  const isNew = !e;
+  const sectorIds = isAdmin() ? [...state.sectors.keys()] : [...new Set(adminMemberships().map((m) => m.sector_id))];
+  const sector = h("select", { class: "input", disabled: !isNew }, sectorIds.map((id) => h("option", { value: id }, sectorLabel(id))));
+  sector.value = e?.sector_id ?? sectorIds[0];
+  const areaSearch = textInput("", { type: "search", placeholder: t("areaSearch"), hidden: !isNew });
+  const area = h("select", { class: "input", disabled: !isNew });
+  const nameEn = textInput(e?.name_en);
+  const nameAr = textInput(e?.name_ar, { dir: "rtl" });
+  const fillAreas = () => {
+    const q = areaSearch.value.trim().toLowerCase();
+    const areas = allowedAreas(sector.value)
+      .filter((a) => !q || a.name_en.toLowerCase().includes(q) || a.name_ar.includes(q) || a.pcode.toLowerCase().includes(q))
+      .sort((a, b) => a.level - b.level || a.pcode.localeCompare(b.pcode)).slice(0, 300);
+    area.replaceChildren(...areas.map((a) => h("option", { value: a.pcode }, `${nm(a)} · ${t(`lv${a.level}`)}${a.level > 1 ? ` · ${areaName(a.parent_pcode)}` : ""}`)));
+    if (e) area.replaceChildren(h("option", { value: e.area_pcode }, `${areaName(e.area_pcode)} · ${t(`lv${e.level}`)}`));
+    suggestNames();
+  };
+  const suggestNames = () => {
+    if (!isNew) return;
+    const s = state.sectors.get(sector.value);
+    const a = state.areas.get(area.value);
+    if (!s || !a) return;
+    nameEn.value = `${s.name_en} – ${a.name_en}`;
+    nameAr.value = `${s.name_ar} – ${a.name_ar}`;
+  };
+  sector.addEventListener("change", fillAreas);
+  areaSearch.addEventListener("input", fillAreas);
+  area.addEventListener("change", suggestNames);
+  fillAreas();
+  const email = textInput(e?.email, { type: "email", dir: "ltr" });
+  const phone = textInput(e?.phone, { type: "tel", dir: "ltr" });
+  const active = h("input", { type: "checkbox", id: "e-active", checked: e ? e.is_active : true });
+  const members = h("div", {}, isNew ? null : h("p", { class: "muted" }, "…"));
+  if (!isNew) loadMembers(e.id, members);
 
-  const membersBox = h("div", {}, existing ? h("p", { class: "muted" }, "…") : null);
-  if (existing) loadMembers(existing.id, membersBox);
-
-  return h("div", { style: "display:grid;gap:16px" },
-    h("div", {}, h("div", { class: "crumbs" }, crumbs.join(lang === "ar" ? " ← " : " → ")),
-      h("h2", { style: "margin:0" }, areaName(area.pcode)), h("div", { class: "level-tag" }, t(`lv${area.level}`), " · ", area.pcode)),
-    h("div", { class: "panel" }, h("h3", {}, t("authority")),
-      h("div", { class: "form-grid" }, field(t("nameEn"), nameEn), field(t("nameAr"), nameAr), field(t("contactEmail"), email), field(t("phone"), phone)),
-      h("label", { class: "switch", for: "auth-active", style: "margin-bottom:14px" }, active, t("activeLabel")),
-      save,
-      existing ? h("span", { class: "muted", style: "margin-inline-start:12px;font-size:14px" },
-        t("openCount", existing.open_count), " · ", t("overdueCount", existing.overdue_count)) : null),
-    existing ? h("div", { class: "panel" }, h("h3", {}, t("members")), membersBox) : null);
+  return h("div", { class: "stack" },
+    h("div", {}, h("div", { class: "crumbs" }, isNew ? t("newEntity") : sectorLabel(e.sector_id)), h("h2", { style: "margin:0" }, isNew ? t("newEntity") : nm(e)),
+      e ? h("div", { class: "level-tag" }, t(`lv${e.level}`), " · ", e.area_pcode) : null),
+    h("div", { class: "panel" }, h("h3", {}, t("entity")),
+      h("div", { class: "form-grid" }, field(t("sector"), sector), h("div", {}, field(t("area"), h("div", { style: "display:grid;gap:6px" }, areaSearch, area)))),
+      h("div", { class: "form-grid" }, field(t("nameEn"), nameEn), field(t("nameAr"), nameAr), field(t("officeEmail"), email), field(t("phone"), phone)),
+      h("label", { class: "switch", for: "e-active", style: "margin-bottom:14px" }, active, t("active")),
+      saveButton(async () => {
+        const { data, error } = await supabase.rpc("save_entity", { p_id: e?.id ?? null, p_sector: sector.value, p_area_pcode: area.value,
+          p_name_en: nameEn.value, p_name_ar: nameAr.value, p_email: email.value, p_phone: phone.value, p_is_active: active.checked });
+        if (error) { toast(errorText(error), true); return; }
+        toast(t("saved"));
+        await loadReference();
+        state.selectedId = data;
+        await loadConfig();
+      }),
+      e ? h("span", { class: "muted", style: "margin-inline-start:12px;font-size:14px" }, t("openCount", e.open_count), " · ", t("overdueCount", e.overdue_count)) : null),
+    isNew ? null : h("div", { class: "panel" }, h("h3", {}, t("members")), members));
 }
 
-async function loadMembers(authorityId, box) {
-  const { data, error } = await supabase.rpc("authority_member_list", { p_authority_id: authorityId });
+async function loadMembers(entityId, box) {
+  const { data, error } = await supabase.rpc("entity_member_list", { p_entity_id: entityId });
   if (error) { box.replaceChildren(h("p", { class: "error" }, errorText(error))); return; }
-  const input = h("input", { class: "input", type: "email", dir: "ltr", placeholder: t("memberEmail") });
+  const email = textInput("", { type: "email", dir: "ltr", placeholder: t("memberEmail") });
+  const role = h("select", { class: "input" }, h("option", { value: "staff" }, t("role_staff")), h("option", { value: "admin" }, t("role_admin")));
   const add = h("button", { class: "btn", type: "button", onclick: async () => {
-    if (!input.value.trim()) return;
-    const { error: e } = await supabase.rpc("add_authority_member", { p_authority_id: authorityId, p_email: input.value.trim() });
+    if (!email.value.trim()) return;
+    const { error: e } = await supabase.rpc("add_entity_member", { p_entity_id: entityId, p_email: email.value.trim(), p_role: role.value });
     if (e) { toast(errorText(e), true); return; }
     toast(t("added"));
-    await loadAdminData();
-  } }, t("addMember"));
+    await loadConfig();
+  } }, t("add"));
   box.replaceChildren(
-    data?.length
-      ? h("ul", { class: "members" }, data.map((m) => h("li", {},
-          h("span", {}, m.email, m.display_name ? h("span", { class: "muted" }, ` · ${m.display_name}`) : null),
-          h("button", { class: "btn small bad", type: "button", onclick: async () => {
-            const { error: e } = await supabase.rpc("remove_authority_member", { p_authority_id: authorityId, p_user_id: m.user_id });
-            if (e) { toast(errorText(e), true); return; }
-            toast(t("removed"));
-            await loadAdminData();
-          } }, t("remove")))))
-      : h("p", { class: "muted" }, t("noMembers")),
-    h("div", { class: "inline" }, input, add));
+    (data || []).length ? h("ul", { class: "plain" }, data.map((m) => h("li", {},
+      h("span", { class: "grow" }, m.email, m.display_name ? h("span", { class: "muted" }, ` · ${m.display_name}`) : null),
+      chip(m.role === "admin" ? "verified" : "neutral", t(`role_${m.role}`)),
+      h("button", { class: "btn small bad", type: "button", onclick: async () => {
+        const { error: e } = await supabase.rpc("remove_entity_member", { p_entity_id: entityId, p_user_id: m.user_id });
+        if (e) { toast(errorText(e), true); return; }
+        toast(t("removed"));
+        await loadConfig();
+      } }, t("remove"))))) : h("p", { class: "muted" }, t("noMembers")),
+    h("div", { class: "inline", style: "margin-top:12px" }, email, role, add),
+    h("p", { class: "muted", style: "font-size:13px;margin:8px 0 0" }, t("adminHint")));
 }
 
-// ---------------------------------------------------------------- Filters, keys, refresh
-let searchTimer;
-$("search").addEventListener("input", (e) => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { state.search = e.target.value.trim(); loadReports(); }, 300); });
-$("category").addEventListener("change", (e) => { state.category = e.target.value; loadReports(); });
-$("governorate").addEventListener("change", (e) => { state.governorate = e.target.value; loadReports(); });
+function categoryForm(c) {
+  const isNew = !c;
+  const id = textInput(c?.id, { dir: "ltr", disabled: !isNew, pattern: "[a-z_]+" });
+  const nameEn = textInput(c?.name_en);
+  const nameAr = textInput(c?.name_ar, { dir: "rtl" });
+  const icon = textInput(c?.icon ?? "📍");
+  const color = h("input", { class: "input", type: "color", value: c?.color ?? "#E8590C" });
+  const severity = h("select", { class: "input" }, ["low", "medium", "high"].map((s) => h("option", { value: s }, t(`sev_${s}`))));
+  severity.value = c?.default_severity ?? "medium";
+  const order = textInput(String(c?.sort_order ?? 200), { type: "number" });
+  const active = h("input", { type: "checkbox", id: "c-active", checked: c ? c.is_active : true });
+  const current = new Set(state.catSectors.get(c?.id) || []);
+  const checks = [...state.sectors.values()].map((s) => h("label", {}, h("input", { type: "checkbox", value: s.id, checked: current.has(s.id) }), `${s.icon} ${nm(s)}`));
+  const labels = h("textarea", { class: "input", dir: "ltr" }, (c?.ai_labels || []).join(", "));
+  return h("div", { class: "stack" },
+    h("h2", { style: "margin:0" }, isNew ? t("newCategory") : `${c.icon} ${nm(c)}`),
+    h("div", { class: "panel" },
+      h("div", { class: "form-grid" }, field(t("catId"), id), field(t("icon"), icon), field(t("nameEn"), nameEn), field(t("nameAr"), nameAr),
+        field(t("color"), color), field(t("severity"), severity), field(t("sortOrder"), order)),
+      h("label", { class: "switch", for: "c-active" }, active, t("active"))),
+    h("div", { class: "panel" }, h("h3", {}, t("catSectors")), h("div", { class: "checks" }, checks)),
+    h("div", { class: "panel" }, field(t("aiLabels"), labels, t("aiHint"))),
+    h("div", {}, saveButton(async () => {
+      const sectors = checks.map((l) => l.querySelector("input")).filter((i) => i.checked).map((i) => i.value);
+      const { error } = await supabase.rpc("save_category", { p_id: id.value, p_name_en: nameEn.value, p_name_ar: nameAr.value, p_icon: icon.value,
+        p_color: color.value.toUpperCase(), p_default_severity: severity.value, p_is_active: active.checked, p_sort_order: Number(order.value),
+        p_ai_labels: labels.value.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean), p_sectors: sectors });
+      if (error) { toast(errorText(error), true); return; }
+      toast(t("saved"));
+      await loadReference();
+      state.selectedId = id.value.trim().toLowerCase();
+      renderConfigList(); renderConfigDetail();
+    })));
+}
 
+function sectorForm(s) {
+  const isNew = !s;
+  const id = textInput(s?.id, { dir: "ltr", disabled: !isNew });
+  const nameEn = textInput(s?.name_en);
+  const nameAr = textInput(s?.name_ar, { dir: "rtl" });
+  const icon = textInput(s?.icon ?? "🏛️");
+  const order = textInput(String(s?.sort_order ?? 100), { type: "number" });
+  const active = h("input", { type: "checkbox", id: "s-active", checked: s ? s.is_active : true });
+  return h("div", { class: "stack" },
+    h("h2", { style: "margin:0" }, isNew ? t("newSector") : `${s.icon} ${nm(s)}`),
+    h("div", { class: "panel" },
+      h("div", { class: "form-grid" }, field(t("sectorId"), id), field(t("icon"), icon), field(t("nameEn"), nameEn), field(t("nameAr"), nameAr), field(t("sortOrder"), order)),
+      h("label", { class: "switch", for: "s-active", style: "margin-bottom:14px" }, active, t("active")),
+      saveButton(async () => {
+        const { error } = await supabase.rpc("save_sector", { p_id: id.value, p_name_en: nameEn.value, p_name_ar: nameAr.value, p_icon: icon.value,
+          p_is_active: active.checked, p_sort_order: Number(order.value) });
+        if (error) { toast(errorText(error), true); return; }
+        toast(t("saved"));
+        await loadReference();
+        state.selectedId = id.value.trim().toLowerCase();
+        renderConfigList(); renderConfigDetail();
+      })));
+}
+
+function settingsForm() {
+  const s = state.config.settings || {};
+  const restrict = h("input", { type: "checkbox", id: "st-restrict", checked: s.restrict_to_service_area ?? true });
+  const radius = textInput(String(s.duplicate_radius_m ?? 500), { type: "number", min: "50", max: "5000" });
+  const defSector = h("select", { class: "input" }, [...state.sectors.values()].map((x) => h("option", { value: x.id }, `${x.icon} ${nm(x)}`)));
+  defSector.value = s.default_sector_id ?? "municipal";
+  const days = (interval) => parseInt(String(interval).match(/(\d+) day/)?.[1] ?? "0", 10);
+  const rows = state.config.rules.map((rule) => {
+    const verify = textInput(String(days(rule.verify_within)), { type: "number", min: "1", "aria-label": t("verifyDays") });
+    const fix = textInput(String(days(rule.fix_within)), { type: "number", min: "1", "aria-label": t("fixDays") });
+    return h("tr", {}, h("td", {}, t(`lv${rule.level}`)), h("td", {}, verify), h("td", {}, fix), h("td", {},
+      h("button", { class: "btn small", type: "button", onclick: async () => {
+        const { error } = await supabase.rpc("save_escalation_rule", { p_level: rule.level, p_verify_days: Number(verify.value), p_fix_days: Number(fix.value) });
+        toast(error ? errorText(error) : t("saved"), Boolean(error));
+      } }, t("save"))));
+  });
+  return h("div", { class: "stack" },
+    h("h2", { style: "margin:0" }, t("settingsTitle")),
+    h("div", { class: "panel" },
+      h("label", { class: "switch", for: "st-restrict" }, restrict, t("restrict")),
+      h("p", { class: "muted", style: "margin:6px 0 14px;font-size:14px" }, t("restrictHint")),
+      h("div", { class: "form-grid" }, field(t("dupRadius"), radius), field(t("defaultSector"), defSector)),
+      saveButton(async () => {
+        const { error } = await supabase.rpc("save_settings", { p_restrict: restrict.checked, p_duplicate_radius_m: Number(radius.value), p_default_sector: defSector.value });
+        toast(error ? errorText(error) : t("saved"), Boolean(error));
+      })),
+    h("div", { class: "panel" }, h("h3", {}, t("deadlines")),
+      h("table", { class: "rules" }, h("thead", {}, h("tr", {}, h("th", {}, t("level")), h("th", {}, t("verifyDays")), h("th", {}, t("fixDays")), h("th", {}))), h("tbody", {}, rows))),
+    h("div", { class: "panel" }, h("h3", {}, t("reroute")), h("p", { class: "muted", style: "margin:0 0 10px;font-size:14px" }, t("rerouteHint")),
+      h("button", { class: "btn", type: "button", onclick: async () => {
+        const { data, error } = await supabase.rpc("reroute_open_tasks");
+        toast(error ? errorText(error) : t("rerouted", data ?? 0), Boolean(error));
+      } }, "↻ ", t("reroute"))));
+}
+
+// ---------------------------------------------------------------- Keys and refresh
 document.addEventListener("keydown", (e) => {
-  if ($("app").hidden || state.view === "admin" || $("dialog").open || e.metaKey || e.ctrlKey || e.altKey) return;
+  const v = currentView();
+  if ($("app").hidden || v.kind === "config" || $("dialog").open || e.metaKey || e.ctrlKey || e.altKey) return;
   if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
-  const index = state.reports.findIndex((x) => x.id === state.selectedId);
-  const r = state.reports[index];
+  const index = state.items.findIndex((x) => x.id === state.selectedId);
+  const x = state.items[index];
   const go = (n) => { if (n) { select(n.id); document.querySelector(`.item[data-id="${n.id}"]`)?.scrollIntoView({ block: "nearest" }); } };
-  if (e.key === "j" || e.key === "ArrowDown") { go(state.reports[index + 1] || state.reports[0]); e.preventDefault(); }
-  else if (e.key === "k" || e.key === "ArrowUp") { go(state.reports[index - 1] || state.reports[state.reports.length - 1]); e.preventDefault(); }
-  else if (e.key === "a" && r) { r.needs_review ? approve(r) : r.status === "submitted" && changeStatus(r, "verified", "verify"); }
-  else if (e.key === "r" && r && !["rejected", "duplicate"].includes(r.status)) { reject(r); }
-  else if (e.key === "e" && r && r.assigned_pcode && OPEN.includes(r.status) && !r.needs_review) { escalate(r); }
+  if (e.key === "j" || e.key === "ArrowDown") { go(state.items[index + 1] || state.items[0]); e.preventDefault(); }
+  else if (e.key === "k" || e.key === "ArrowUp") { go(state.items[index - 1] || state.items[state.items.length - 1]); e.preventDefault(); }
+  else if (!x) return;
+  else if (v.kind === "tasks" && e.key === "a" && x.status === "new") changeTask(x, "verified", "verify");
+  else if (v.kind === "tasks" && e.key === "r" && OPEN.includes(x.status)) changeTask(x, "rejected", "reject");
+  else if (v.kind === "tasks" && e.key === "e" && OPEN.includes(x.status) && x.entity_id) escalate(x);
+  else if (v.kind === "reports" && e.key === "a" && x.needs_review) run("review_report", { p_report_id: x.id, p_approve: true, p_note: null });
+  else if (v.kind === "reports" && e.key === "r" && !["rejected", "duplicate"].includes(x.status)) rejectReport(x);
 });
 
-// New reports arrive while the page is open: refresh the counts every minute and when the tab comes back.
-setInterval(() => { if (!$("app").hidden && !document.hidden && state.view !== "admin") loadCounts(); }, 60000);
+setInterval(() => { if (!$("app").hidden && !document.hidden && currentView().kind !== "config") loadCounts(); }, 60000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden && !$("app").hidden) refresh(); });
 
 start();
