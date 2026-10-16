@@ -337,6 +337,7 @@ const T = {
     catSectors: "Which sectors handle it", aiLabels: "AI words (comma-separated)", aiHint: "Words the phone's image AI may detect for this issue, e.g. water, pipe, leak.",
     sectorId: "ID (letters and _ only)",
     settingsTitle: "Settings", restrict: "Accept reports only inside Syria", restrictHint: "Turn off only for testing outside Syria.",
+    requireLocation: "Require the phone's real location", requireLocationHint: "Reports are refused when location is off, approximate or faked, or when the phone is far from the problem. Turn off only for testing.",
     dupRadius: "Duplicate check radius (metres)", defaultSector: "Sector for issue types without one",
     deadlines: "Deadlines before escalation", level: "Level", verifyDays: "Days to verify", fixDays: "Days to fix",
     reroute: "Re-route open tasks", rerouteHint: "After adding or switching off offices, send open tasks to the closest active one.", rerouted: (n) => `${n} tasks re-routed.`,
@@ -398,6 +399,7 @@ const T = {
     catSectors: "القطاعات المسؤولة عنه", aiLabels: "كلمات الذكاء الاصطناعي (مفصولة بفواصل)", aiHint: "كلمات قد يكتشفها الذكاء الاصطناعي في الصورة لهذا النوع، مثل water, pipe, leak.",
     sectorId: "المعرّف (أحرف إنجليزية و _ فقط)",
     settingsTitle: "الإعدادات", restrict: "قبول البلاغات داخل سوريا فقط", restrictHint: "أوقفه فقط للاختبار خارج سوريا.",
+    requireLocation: "اشتراط الموقع الحقيقي للهاتف", requireLocationHint: "تُرفض البلاغات عندما يكون الموقع مغلقًا أو تقريبيًا أو مزيفًا، أو عندما يكون الهاتف بعيدًا عن المشكلة. أوقفه فقط للاختبار.",
     dupRadius: "نطاق فحص التكرار (بالأمتار)", defaultSector: "القطاع للأنواع التي ليس لها قطاع",
     deadlines: "المهل قبل التصعيد", level: "المستوى", verifyDays: "أيام للتحقق", fixDays: "أيام للإصلاح",
     reroute: "إعادة توجيه المهام المفتوحة", rerouteHint: "بعد إضافة مكاتب أو إيقافها، أرسل المهام المفتوحة إلى أقرب مكتب فعّال.", rerouted: (n) => `أُعيد توجيه ${n} مهمة.`,
@@ -1254,6 +1256,7 @@ function sectorForm(s) {
 function settingsForm() {
   const s = state.config.settings || {};
   const restrict = h("input", { type: "checkbox", id: "st-restrict", checked: s.restrict_to_service_area ?? true });
+  const requireLocation = h("input", { type: "checkbox", id: "st-location", checked: s.require_device_location ?? true });
   const radius = textInput(String(s.duplicate_radius_m ?? 500), { type: "number", min: "50", max: "5000" });
   const defSector = h("select", { class: "input" }, [...state.sectors.values()].map((x) => h("option", { value: x.id }, `${x.icon} ${nm(x)}`)));
   defSector.value = s.default_sector_id ?? "municipal";
@@ -1272,9 +1275,11 @@ function settingsForm() {
     h("div", { class: "panel" },
       h("label", { class: "switch", for: "st-restrict" }, restrict, t("restrict")),
       h("p", { class: "muted", style: "margin:6px 0 14px;font-size:14px" }, t("restrictHint")),
+      h("label", { class: "switch", for: "st-location" }, requireLocation, t("requireLocation")),
+      h("p", { class: "muted", style: "margin:6px 0 14px;font-size:14px" }, t("requireLocationHint")),
       h("div", { class: "form-grid" }, field(t("dupRadius"), radius), field(t("defaultSector"), defSector)),
       saveButton(async () => {
-        const { error } = await supabase.rpc("save_settings", { p_restrict: restrict.checked, p_duplicate_radius_m: Number(radius.value), p_default_sector: defSector.value });
+        const { error } = await supabase.rpc("save_settings", { p_restrict: restrict.checked, p_duplicate_radius_m: Number(radius.value), p_default_sector: defSector.value, p_require_device_location: requireLocation.checked });
         toast(error ? errorText(error) : t("saved"), Boolean(error));
       })),
     h("div", { class: "panel" }, h("h3", {}, t("deadlines")),
