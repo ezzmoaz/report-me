@@ -313,6 +313,7 @@ const T = {
     to: "to",
     cancel: "Cancel", noteLabel: "Note (optional, shown to the citizen)", escalateNote: "Why (optional, sent to the next office)", reasonLabel: "Reason (optional, internal)",
     d_status: (s) => `Mark this task “${s}”?`, d_status_body: "The citizen and everyone affected get a notification when the report status changes.",
+    fixPhoto: "Photo after the fix (required)", fixPhotoBody: "Take or choose a photo showing the problem fixed. The citizen sees it on their report.", fixPhotoMissing: "Add a photo of the fixed problem first.", fixPhotoTitle: "Photo after the fix", uploading: "Uploading the photo…",
     d_escalate: "Escalate to the next level?", d_escalate_body: "The task moves up within the same sector (unit → directorate → ministry → central team), which gets an email.",
     d_transfer: "Send to another sector?", d_transfer_body: "This task closes as transferred and the right sector gets a new task.", pickSector: "Sector",
     d_assign: "Assign to an office?", d_assign_body: "Pick the office of this sector that should handle it.", pickEntity: "Office",
@@ -377,6 +378,7 @@ const T = {
     to: "إلى",
     cancel: "إلغاء", noteLabel: "ملاحظة (اختيارية، تظهر للمواطن)", escalateNote: "السبب (اختياري، يُرسل إلى المكتب التالي)", reasonLabel: "السبب (اختياري، داخلي)",
     d_status: (s) => `تغيير حالة المهمة إلى «${s}»؟`, d_status_body: "يصل إشعار إلى المواطن وكل المتأثرين عند تغيّر حالة البلاغ.",
+    fixPhoto: "صورة بعد الإصلاح (مطلوبة)", fixPhotoBody: "التقط أو اختر صورة تُظهر المشكلة بعد إصلاحها. سيراها المواطن على بلاغه.", fixPhotoMissing: "أضف صورة للمشكلة بعد إصلاحها أولًا.", fixPhotoTitle: "صورة بعد الإصلاح", uploading: "جارٍ رفع الصورة…",
     d_escalate: "تصعيد إلى المستوى الأعلى؟", d_escalate_body: "تنتقل المهمة للأعلى في القطاع نفسه (وحدة ← مديرية ← وزارة ← الفريق المركزي) ويصلها بريد إلكتروني.",
     d_transfer: "تحويل إلى قطاع آخر؟", d_transfer_body: "تُغلق هذه المهمة كمحوّلة وتُنشأ مهمة جديدة للقطاع الصحيح.", pickSector: "القطاع",
     d_assign: "إحالة إلى مكتب؟", d_assign_body: "اختر مكتب هذا القطاع الذي سيتولاها.", pickEntity: "المكتب",
@@ -468,7 +470,7 @@ function errorText(error) {
   const msg = `${error?.message || ""} ${error?.code || ""}`;
   const map = [["forbidden", "e_forbidden"], ["42501", "e_forbidden"], ["already_central", "e_central"], ["no_entity", "e_no_entity"],
     ["same_sector", "e_same_sector"], ["user_not_found", "e_user"], ["invalid_deadline", "e_deadline"], ["duplicate_of_required", "e_dup"],
-    ["cannot_ban_staff", "e_staff"], ["Failed to fetch", "e_network"], ["NetworkError", "e_network"]];
+    ["cannot_ban_staff", "e_staff"], ["fix_photo_required", "fixPhotoMissing"], ["Failed to fetch", "e_network"], ["NetworkError", "e_network"]];
   for (const [needle, key] of map) if (msg.includes(needle)) return t(key);
   return t("e_generic");
 }
@@ -844,6 +846,9 @@ function renderTaskDetail(task) {
     reportHeader(task, [taskChip(task), isOverdue(task) ? chip("overdue", "⏰ ", t("overdue")) : null]),
     actions,
     photosAndText(task),
+    task.fix_photo_path ? h("div", { class: "panel" }, h("h3", {}, "✅ ", t("fixPhotoTitle")),
+      h("div", { class: "photos" }, h("a", { href: PHOTO_BASE + task.fix_photo_path, target: "_blank", rel: "noopener" },
+        h("img", { src: PHOTO_BASE + task.fix_photo_path, alt: t("fixPhotoTitle"), loading: "lazy" })))) : null,
     h("div", { class: "grid2" },
       h("div", { class: "panel" }, h("h3", {}, t("thisTask")),
         h("dl", { class: "facts" },
@@ -863,7 +868,7 @@ function renderTaskDetail(task) {
 
 async function loadTaskExtras(task, el) {
   const [tasks, events, history, flags] = await Promise.all([
-    supabase.from("report_tasks").select("id, sector_id, entity_id, status, due_at").eq("report_id", task.report_id),
+    supabase.from("report_tasks").select("id, sector_id, entity_id, status").eq("report_id", task.report_id),
     supabase.from("task_events").select("kind, from_entity, to_entity, status, note, created_at").eq("task_id", task.id).order("created_at"),
     supabase.from("report_status_history").select("to_status, note, created_at").eq("report_id", task.report_id).order("created_at"),
     supabase.from("report_flags").select("reason, created_at").eq("report_id", task.report_id),
@@ -972,8 +977,40 @@ async function run(rpc, args, message = t("done")) {
 }
 
 async function changeTask(task, status, key) {
-  const answer = await ask({ title: t("d_status", t(`st_${status}`)), body: t("d_status_body"), okText: t(key), okClass: status === "rejected" ? "bad" : "primary" });
-  if (answer) await run("set_task_status", { p_task_id: task.id, p_status: status, p_note: answer.note });
+  const photo = status === "resolved" ? fixPhotoField() : null;
+  const answer = await ask({ title: t("d_status", t(`st_${status}`)), body: status === "resolved" ? t("fixPhotoBody") : t("d_status_body"),
+    okText: t(key), okClass: status === "rejected" ? "bad" : "primary", extra: photo });
+  if (!answer) return;
+  let path = null;
+  if (status === "resolved") {
+    path = await uploadFixPhoto(photo, task.report_id, task.id);
+    if (!path) return;
+  }
+  await run("set_task_status", { p_task_id: task.id, p_status: status, p_note: answer.note, p_photo_path: path });
+}
+
+// Proof of the fix: a required photo, resized to a JPEG in the browser (this also drops its location data),
+// stored as report-photos/<report id>/fixes/<task id>/<random>.jpg.
+function fixPhotoField() {
+  return h("div", { class: "field" }, h("label", {}, t("fixPhoto")),
+    h("input", { class: "input", type: "file", accept: "image/*", capture: "environment" }));
+}
+
+async function uploadFixPhoto(field, reportId, taskId) {
+  const file = field.querySelector("input").files?.[0];
+  if (!file) { toast(t("fixPhotoMissing"), true); return null; }
+  toast(t("uploading"));
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.8));
+  const path = `${reportId}/fixes/${taskId}/${crypto.randomUUID()}.jpg`;
+  const { error } = await supabase.storage.from("report-photos").upload(path, blob, { contentType: "image/jpeg" });
+  if (error) { toast(errorText(error), true); return null; }
+  return path;
 }
 
 async function escalate(task) {
@@ -1010,8 +1047,17 @@ async function rejectReport(r) {
   else await run("set_report_status", { p_report_id: r.id, p_status: "rejected", p_note: answer.note });
 }
 async function reportStatus(r, status, titleKey, bodyKey, okKey) {
-  const answer = await ask({ title: t(titleKey), body: t(bodyKey), okText: t(okKey) });
-  if (answer) await run("set_report_status", { p_report_id: r.id, p_status: status, p_note: answer.note });
+  const photo = status === "resolved" ? fixPhotoField() : null;
+  const answer = await ask({ title: t(titleKey), body: status === "resolved" ? t("fixPhotoBody") : t(bodyKey), okText: t(okKey), extra: photo });
+  if (!answer) return;
+  let path = null;
+  if (status === "resolved") {
+    const folder = (r.tasks || []).find((tk) => OPEN.includes(tk.status)) || (r.tasks || [])[0];
+    if (!folder) { toast(t("fixPhotoMissing"), true); return; }
+    path = await uploadFixPhoto(photo, r.id, folder.id);
+    if (!path) return;
+  }
+  await run("set_report_status", { p_report_id: r.id, p_status: status, p_note: answer.note, p_photo_path: path });
 }
 async function duplicateReport(r) {
   const answer = await ask({ title: t("d_dup"), body: t("d_dup_body"), okText: t("duplicate").replace("…", ""),
