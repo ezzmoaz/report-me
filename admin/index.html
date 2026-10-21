@@ -229,11 +229,7 @@ dialog p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
 </main>
 
 <main id="noaccess" class="center" hidden>
-  <div class="card">
-    <h1 data-t="noAccessTitle">No dashboard access</h1>
-    <p class="muted" data-t="noAccessBody">This account isn't part of the central team or of a government entity.</p>
-    <p class="muted" style="font-size:13px"><span data-t="accountId">Account ID</span>: <code id="noaccess-id"></code></p>
-  </div>
+  <div class="card" id="noaccess-card"></div>
 </main>
 
 <div class="app" id="app" hidden>
@@ -280,15 +276,25 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ---------------------------------------------------------------- Text
 const T = {
   en: {
-    dashboard: "Dashboard", signOut: "Sign out", signInTitle: "Dashboard sign in", signInBody: "We'll email you a 6-digit code.",
+    dashboard: "Dashboard", signOut: "Sign out", signInTitle: "Dashboard sign in", signInBody: "We'll email you a 6-digit code. New here? Sign in with your email, then ask for access.",
     email: "Email", code: "6-digit code", changeEmail: "Use a different email", sendCode: "Send code", signIn: "Sign in",
     codeSent: "Code sent. Check your email.", badCode: "That code didn't work. Check it, or send a new one.",
     noAccount: "There's no account with this email. Sign in once in the app first.",
     noAccessTitle: "No dashboard access", accountId: "Account ID",
     noAccessBody: "This account isn't part of the central team or of a government entity. Ask your entity's admin to add it.",
+    req_title: "Ask for dashboard access", req_body: "Tell us who you are. An admin reviews every request before giving access.",
+    req_name: "Full name", req_org: "Organization or office", req_job: "Job title (optional)", req_phone: "Phone (optional)",
+    req_note: "Why do you need access? (optional)", req_send: "Send request", req_missing: "Add your name and organization.",
+    req_pending_title: "Request sent", req_pending_body: "An admin will review it. Come back to this page once you're approved.",
+    req_rejected: "Your previous request wasn't approved.", req_resend: "Send again",
+    v_requests: "Access requests", rq_none: "No access requests yet.", rq_pending: "Pending", rq_approved: "Approved", rq_rejected: "Rejected",
+    rq_requested: "Requested", rq_reviewed: "Reviewed", rq_decide: "Decide", rq_demo: "All demo offices", rq_offices: "Other offices",
+    rq_officesHint: "Hold Ctrl or ⌘ to pick several.", rq_role: "Role", rq_note: "Note (optional, internal)", rq_approve: "Approve",
+    rq_reject: "Reject", rq_approvedToast: "Approved. They can sign in now.", rq_rejectedToast: "Request rejected.", demo: "Demo",
+    e_office_required: "Pick at least one office.", e_already_approved: "This request is already approved.",
     search: "Search address or text", allCategories: "All issue types", allGovernorates: "All governorates", allSectors: "All sectors",
     sec_work: "Work", sec_central: "Central team", sec_setup: "Setup",
-    v_new: "New for us", v_verified: "Verified", v_progress: "Being fixed", v_overdue: "Overdue", v_below: "Below us",
+    v_new: "New for us", v_verified: "Verified", v_progress: "Being fixed", v_overdue: "Overdue", v_below: "Below us", v_above: "Above us",
     v_done: "Done", v_all: "All tasks", v_review: "Waiting for review", v_central: "Central queue", v_open: "Open tasks",
     v_flagged: "Flagged", v_reports: "All reports", v_entities: "Entities", v_offices: "My offices", v_categories: "Issue types",
     v_sectors: "Sectors", v_settings: "Settings",
@@ -345,15 +351,25 @@ const T = {
     reroute: "Re-route open tasks", rerouteHint: "After adding or switching off offices, send open tasks to the closest active one.", rerouted: (n) => `${n} tasks re-routed.`,
   },
   ar: {
-    dashboard: "لوحة التحكم", signOut: "تسجيل الخروج", signInTitle: "الدخول إلى لوحة التحكم", signInBody: "سنرسل إلى بريدك رمزًا من 6 أرقام.",
+    dashboard: "لوحة التحكم", signOut: "تسجيل الخروج", signInTitle: "الدخول إلى لوحة التحكم", signInBody: "سنرسل إلى بريدك رمزًا من 6 أرقام. جديد؟ سجّل الدخول ببريدك، ثم اطلب الانضمام.",
     email: "البريد الإلكتروني", code: "الرمز المكوّن من 6 أرقام", changeEmail: "استخدام بريد آخر", sendCode: "إرسال الرمز", signIn: "دخول",
     codeSent: "تم إرسال الرمز. تحقق من بريدك.", badCode: "الرمز غير صحيح. تحقق منه أو اطلب رمزًا جديدًا.",
     noAccount: "لا يوجد حساب بهذا البريد. سجّل الدخول في التطبيق مرة أولًا.",
     noAccessTitle: "لا توجد صلاحية دخول", accountId: "معرّف الحساب",
     noAccessBody: "هذا الحساب ليس من الفريق المركزي ولا من جهة حكومية. اطلب من مسؤول جهتك إضافته.",
+    req_title: "طلب الانضمام إلى لوحة التحكم", req_body: "عرّفنا بنفسك. يراجع المسؤول كل طلب قبل منح الصلاحية.",
+    req_name: "الاسم الكامل", req_org: "الجهة أو المؤسسة", req_job: "المسمى الوظيفي (اختياري)", req_phone: "الهاتف (اختياري)",
+    req_note: "لماذا تحتاج الصلاحية؟ (اختياري)", req_send: "إرسال الطلب", req_missing: "أدخل اسمك والجهة.",
+    req_pending_title: "تم إرسال طلبك", req_pending_body: "سيراجعه المسؤول. عُد إلى هذه الصفحة بعد الموافقة.",
+    req_rejected: "لم تتم الموافقة على طلبك السابق.", req_resend: "إعادة الإرسال",
+    v_requests: "طلبات الانضمام", rq_none: "لا توجد طلبات انضمام بعد.", rq_pending: "بانتظار المراجعة", rq_approved: "مقبول", rq_rejected: "مرفوض",
+    rq_requested: "تاريخ الطلب", rq_reviewed: "تمت المراجعة", rq_decide: "القرار", rq_demo: "كل المكاتب التجريبية", rq_offices: "مكاتب أخرى",
+    rq_officesHint: "اضغط Ctrl أو ⌘ لاختيار أكثر من مكتب.", rq_role: "الدور", rq_note: "ملاحظة (اختيارية، داخلية)", rq_approve: "قبول",
+    rq_reject: "رفض", rq_approvedToast: "تمت الموافقة. يمكنه الدخول الآن.", rq_rejectedToast: "تم رفض الطلب.", demo: "تجريبي",
+    e_office_required: "اختر مكتبًا واحدًا على الأقل.", e_already_approved: "تمت الموافقة على هذا الطلب من قبل.",
     search: "ابحث في العنوان أو النص", allCategories: "كل أنواع الأعطال", allGovernorates: "كل المحافظات", allSectors: "كل القطاعات",
     sec_work: "العمل", sec_central: "الفريق المركزي", sec_setup: "الإعداد",
-    v_new: "جديدة لنا", v_verified: "تم التحقق", v_progress: "جارٍ الإصلاح", v_overdue: "متأخرة", v_below: "لدى الوحدات التابعة",
+    v_new: "جديدة لنا", v_verified: "تم التحقق", v_progress: "جارٍ الإصلاح", v_overdue: "متأخرة", v_below: "لدى الوحدات التابعة", v_above: "لدى الجهات الأعلى",
     v_done: "منتهية", v_all: "كل المهام", v_review: "بانتظار المراجعة", v_central: "قائمة الفريق المركزي", v_open: "المهام المفتوحة",
     v_flagged: "مُبلّغ عنها", v_reports: "كل البلاغات", v_entities: "الجهات", v_offices: "مكاتبي", v_categories: "أنواع الأعطال",
     v_sectors: "القطاعات", v_settings: "الإعدادات",
@@ -470,7 +486,7 @@ function errorText(error) {
   const msg = `${error?.message || ""} ${error?.code || ""}`;
   const map = [["forbidden", "e_forbidden"], ["42501", "e_forbidden"], ["already_central", "e_central"], ["no_entity", "e_no_entity"],
     ["same_sector", "e_same_sector"], ["user_not_found", "e_user"], ["invalid_deadline", "e_deadline"], ["duplicate_of_required", "e_dup"],
-    ["cannot_ban_staff", "e_staff"], ["fix_photo_required", "fixPhotoMissing"], ["Failed to fetch", "e_network"], ["NetworkError", "e_network"]];
+    ["cannot_ban_staff", "e_staff"], ["fix_photo_required", "fixPhotoMissing"], ["office_required", "e_office_required"], ["already_approved", "e_already_approved"], ["Failed to fetch", "e_network"], ["NetworkError", "e_network"]];
   for (const [needle, key] of map) if (msg.includes(needle)) return t(key);
   return t("e_generic");
 }
@@ -510,7 +526,8 @@ function views() {
       { id: "mine_verified", kind: "tasks", icon: "✅", key: "v_verified", filter: (q) => q.eq("status", "verified").in("entity_id", mine) },
       { id: "mine_progress", kind: "tasks", icon: "🛠️", key: "v_progress", filter: (q) => q.eq("status", "in_progress").in("entity_id", mine) },
       { id: "overdue", kind: "tasks", icon: "⏰", key: "v_overdue", alarm: true, filter: (q) => q.in("status", OPEN).lt("due_at", new Date().toISOString()).order("due_at", { ascending: true }) },
-      { id: "below", kind: "tasks", icon: "🏢", key: "v_below", filter: (q) => q.in("status", OPEN).not("entity_id", "in", `(${mine.join(",")})`) },
+      { id: "below", kind: "tasks", icon: "🏢", key: "v_below", filter: (q) => q.in("status", OPEN).eq("holder", "below") },
+      { id: "above", kind: "tasks", icon: "⬆️", key: "v_above", filter: (q) => q.in("status", OPEN).in("holder", ["above", "central"]) },
       { id: "done", kind: "tasks", icon: "🎉", key: "v_done", count: false, filter: (q) => q.in("status", DONE) },
       { id: "all", kind: "tasks", icon: "🗂️", key: "v_all", count: false, filter: (q) => q },
     );
@@ -529,7 +546,9 @@ function views() {
     );
   }
   if (canManageOffices()) {
-    list.push({ section: "sec_setup" }, { id: "entities", kind: "config", icon: "🏢", key: isAdmin() ? "v_entities" : "v_offices" });
+    list.push({ section: "sec_setup" });
+    if (isAdmin()) list.push({ id: "requests", kind: "config", icon: "🙋", key: "v_requests", hot: true });
+    list.push({ id: "entities", kind: "config", icon: "🏢", key: isAdmin() ? "v_entities" : "v_offices" });
   }
   if (isAdmin()) {
     list.push(
@@ -563,7 +582,7 @@ async function onSession(session) {
   const { data: me } = await supabase.rpc("dashboard_me");
   state.me = { role: me?.role ?? null, memberships: me?.memberships ?? [] };
   if (!isStaff() && !state.me.memberships.length) {
-    $("noaccess-id").textContent = state.user.id;
+    await showAccessRequest();
     $("noaccess").hidden = false;
     return;
   }
@@ -572,6 +591,44 @@ async function onSession(session) {
   $("app").hidden = false;
   await showView();
   openFromHash();
+}
+
+// Signed in without access: ask for it, or see the request's status.
+async function showAccessRequest() {
+  const { data: request } = await supabase.from("access_requests").select("*").eq("user_id", state.user.id).maybeSingle();
+  const card = $("noaccess-card");
+  if (request?.status === "pending") {
+    card.replaceChildren(h("h1", {}, "✅ ", t("req_pending_title")), h("p", { class: "muted" }, t("req_pending_body")),
+      h("p", { class: "muted", style: "font-size:13px" }, `${request.name} · ${request.organization}`));
+    return;
+  }
+  if (request?.status === "approved") {
+    card.replaceChildren(h("h1", {}, t("noAccessTitle")), h("p", { class: "muted" }, t("noAccessBody")),
+      h("p", { class: "muted", style: "font-size:13px" }, `${t("accountId")}: `, h("code", {}, state.user.id)));
+    return;
+  }
+  const name = textInput(request?.name, { autocomplete: "name", required: true });
+  const org = textInput(request?.organization, { autocomplete: "organization", required: true });
+  const job = textInput(request?.job_title, { autocomplete: "organization-title" });
+  const phone = textInput(request?.phone, { type: "tel", dir: "ltr", autocomplete: "tel" });
+  const note = h("textarea", { class: "input", maxlength: "500" }, request?.note ?? "");
+  const error = h("div", { class: "error", role: "alert", hidden: true });
+  const submit = h("button", { class: "btn primary", type: "submit", style: "width:100%" }, request ? t("req_resend") : t("req_send"));
+  const form = h("form", { class: "stack", onsubmit: async (event) => {
+    event.preventDefault();
+    error.hidden = true;
+    if (name.value.trim().length < 2 || org.value.trim().length < 2) { error.textContent = t("req_missing"); error.hidden = false; return; }
+    submit.disabled = true;
+    const { error: e } = await supabase.rpc("request_dashboard_access", { p_name: name.value, p_organization: org.value,
+      p_job_title: job.value, p_phone: phone.value, p_note: note.value });
+    submit.disabled = false;
+    if (e) { error.textContent = errorText(e); error.hidden = false; return; }
+    await showAccessRequest();
+  } }, field(t("req_name"), name), field(t("req_org"), org), field(t("req_job"), job), field(t("req_phone"), phone),
+    field(t("req_note"), note), error, submit);
+  card.replaceChildren(...[h("h1", {}, t("req_title")), h("p", { class: "muted" }, t("req_body")),
+    request?.status === "rejected" ? h("div", { class: "alert" }, t("req_rejected"), request.review_note ? h("div", {}, request.review_note) : null) : null,
+    form].filter(Boolean));
 }
 
 function setSignInStep(step) {
@@ -591,8 +648,9 @@ $("signin-form").addEventListener("submit", async (event) => {
   try {
     if (!pendingEmail) {
       const email = $("email").value.trim();
-      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
-      if (error) { signInError(/signups not allowed|not found|422/i.test(error.message) ? t("noAccount") : errorText(error)); return; }
+      // New people can sign up here; they get no access until an admin approves their request.
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+      if (error) { signInError(errorText(error)); return; }
       pendingEmail = email;
       setSignInStep("code");
       toast(t("codeSent"));
@@ -621,7 +679,7 @@ async function loadReference() {
     supabase.from("categories").select("id, name_en, name_ar, icon, color, default_severity, is_active, sort_order, ai_labels").order("sort_order"),
     supabase.from("sectors").select("*").order("sort_order"),
     supabase.from("category_sectors").select("category_id, sector_id"),
-    supabase.from("entities").select("id, sector_id, area_pcode, name_en, name_ar, is_active"),
+    supabase.from("entities").select("id, sector_id, area_pcode, name_en, name_ar, is_active, is_demo"),
   ]);
   state.areas = new Map((areas.data || []).map((a) => [a.pcode, a]));
   state.categories = new Map((categories.data || []).map((c) => [c.id, c]));
@@ -713,6 +771,10 @@ async function loadCounts() {
     return [v.id, count ?? 0];
   }));
   state.counts = Object.fromEntries(results);
+  if (isAdmin()) {
+    const { count } = await supabase.from("access_requests").select("id", { count: "exact", head: true }).eq("status", "pending");
+    state.counts.requests = count ?? 0;
+  }
   renderViews();
 }
 
@@ -1078,6 +1140,11 @@ async function loadConfig() {
     const { data } = await supabase.from("entity_directory").select("*");
     state.config.directory = data || [];
   }
+  if (id === "requests") {
+    const { data } = await supabase.from("access_requests").select("*").order("created_at", { ascending: false });
+    const order = { pending: 0, rejected: 1, approved: 2 };
+    state.config.requests = (data || []).sort((a, b) => order[a.status] - order[b.status]);
+  }
   if (id === "settings") {
     const [settings, rules] = await Promise.all([
       supabase.from("app_settings").select("*").maybeSingle(),
@@ -1121,7 +1188,11 @@ function renderConfigList() {
     list.replaceChildren(newButton("newEntity", "new"), ...rows.map((e) => configItem(e.id, nm(e),
       `${sectorLabel(e.sector_id)} · ${t(`lv${e.level}`)} · ${areaName(e.area_pcode)}`,
       [e.open_count ? chip("neutral", t("openCount", e.open_count)) : null, e.overdue_count ? chip("overdue", t("overdueCount", e.overdue_count)) : null,
-       chip("neutral", "👤 ", e.member_count)], !e.is_active)));
+       chip("neutral", "👤 ", e.member_count), state.entities.get(e.id)?.is_demo ? chip("in_progress", t("demo")) : null], !e.is_active)));
+  } else if (id === "requests") {
+    const rows = state.config.requests || [];
+    list.replaceChildren(...(rows.length ? rows.map((r) => configItem(r.id, r.name, `${r.organization} · ${r.email}`,
+      [requestChip(r.status), h("span", { class: "muted", style: "font-size:12px" }, timeAgo(r.created_at))])) : [h("li", { class: "muted", style: "padding:16px" }, t("rq_none"))]));
   } else if (id === "categories") {
     list.replaceChildren(newButton("newCategory", "new"), ...[...state.categories.values()].map((c) => configItem(c.id, `${c.icon} ${nm(c)}`,
       (state.catSectors.get(c.id) || []).map(sectorLabel).join(" · ") || "—", [], !c.is_active)));
@@ -1138,6 +1209,7 @@ function renderConfigDetail() {
   const pane = $("detail");
   const content = id === "settings" ? settingsForm()
     : !state.selectedId ? h("div", { class: "empty" }, h("div", { class: "big" }, "🗂️"), t("pick"))
+    : id === "requests" ? requestDetail((state.config.requests || []).find((r) => r.id === state.selectedId))
     : id === "entities" ? entityForm(state.selectedId === "new" ? null : state.config.directory.find((e) => e.id === state.selectedId))
     : id === "categories" ? categoryForm(state.selectedId === "new" ? null : state.categories.get(state.selectedId))
     : sectorForm(state.selectedId === "new" ? null : state.sectors.get(state.selectedId));
@@ -1240,6 +1312,44 @@ async function loadMembers(entityId, box) {
       } }, t("remove"))))) : h("p", { class: "muted" }, t("noMembers")),
     h("div", { class: "inline", style: "margin-top:12px" }, email, role, add),
     h("p", { class: "muted", style: "font-size:13px;margin:8px 0 0" }, t("adminHint")));
+}
+
+const requestChip = (status) => chip({ pending: "review", approved: "resolved", rejected: "neutral" }[status], t(`rq_${status}`));
+
+// An access request: who asked, and (for pending ones) approve into offices or reject.
+function requestDetail(r) {
+  if (!r) return h("div", { class: "empty" }, h("div", { class: "big" }, "🙋"), t("pick"));
+  const facts = h("dl", { class: "facts" },
+    h("dt", {}, t("email")), h("dd", { dir: "ltr" }, r.email),
+    h("dt", {}, t("req_org")), h("dd", {}, r.organization),
+    r.job_title ? [h("dt", {}, t("req_job")), h("dd", {}, r.job_title)] : null,
+    r.phone ? [h("dt", {}, t("req_phone")), h("dd", { dir: "ltr" }, r.phone)] : null,
+    h("dt", {}, t("rq_requested")), h("dd", {}, fmtDate(r.created_at)),
+    r.reviewed_at ? [h("dt", {}, t("rq_reviewed")), h("dd", {}, fmtDate(r.reviewed_at))] : null);
+  const demoOffices = [...state.entities.values()].filter((e) => e.is_demo && e.is_active);
+  const demo = h("input", { type: "checkbox", id: "rq-demo", checked: demoOffices.length > 0, disabled: !demoOffices.length });
+  const offices = h("select", { class: "input", multiple: true, size: "6" }, [...state.entities.values()]
+    .filter((e) => e.is_active && !e.is_demo).sort((a, b) => nm(a).localeCompare(nm(b), lang))
+    .map((e) => h("option", { value: e.id }, `${state.sectors.get(e.sector_id)?.icon ?? ""} ${nm(e)}`)));
+  const role = h("select", { class: "input" }, ["staff", "admin"].map((x) => h("option", { value: x }, t(`role_${x}`))));
+  const note = h("textarea", { class: "input", maxlength: "500" }, "");
+  const decide = async (approve) => {
+    const { error } = await supabase.rpc("review_access_request", { p_request_id: r.id, p_approve: approve,
+      p_entity_ids: [...offices.selectedOptions].map((o) => o.value), p_demo: approve && demo.checked, p_role: role.value, p_note: note.value });
+    if (error) { toast(errorText(error), true); return; }
+    toast(t(approve ? "rq_approvedToast" : "rq_rejectedToast"));
+    await loadConfig();
+    await loadCounts();
+  };
+  return h("div", { class: "stack" },
+    h("div", { class: "row", style: "justify-content:space-between" }, h("h2", { style: "margin:0" }, r.name), requestChip(r.status)),
+    h("div", { class: "panel" }, facts, r.note ? h("p", { class: "note" }, r.note) : null, r.review_note ? h("p", { class: "muted" }, r.review_note) : null),
+    r.status === "approved" ? null : h("div", { class: "panel stack" }, h("h3", {}, t("rq_decide")),
+      h("label", { class: "inline" }, demo, ` ${t("rq_demo")} (${demoOffices.length})`),
+      field(t("rq_offices"), offices, t("rq_officesHint")), field(t("rq_role"), role), field(t("rq_note"), note),
+      h("div", { class: "row" },
+        h("button", { class: "btn ok", type: "button", onclick: () => decide(true) }, "✓ ", t("rq_approve")),
+        h("button", { class: "btn bad", type: "button", onclick: () => decide(false) }, t("rq_reject")))));
 }
 
 function categoryForm(c) {
